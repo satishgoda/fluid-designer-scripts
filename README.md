@@ -1,4 +1,4 @@
-fluid Designer Scripts
+Fluid Designer Scripts
 ==============
 
 This repository holds all of the scripts needed for Fluid Designer. 
