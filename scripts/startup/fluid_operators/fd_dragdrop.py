@@ -315,6 +315,11 @@ class OPS_drag_and_drop(bpy.types.Operator):
                 obj.mv.name_object = filename
                 bpy.context.scene.objects.link(obj)
                 obj.mv.assign_materials_from_pointers(obj.name)
+                dm.set_object_name(obj)
+                bpy.ops.object.select_all(action='DESELECT')
+                bpy.context.scene.objects.active = obj
+                obj.hide = False
+                obj.select = True
                 return {'FINISHED'}
 
         elif self.library_type =='GROUP':
@@ -360,6 +365,7 @@ class OPS_place_product(Operator):
             for obj in grp.objects:
                 obj_list.append(obj)
             fd_utils.delete_obj_list(obj_list)
+            bpy.data.groups.remove(grp)
             
     def invoke(self,context,event):
         if self.active_obj_id in bpy.data.objects:
@@ -375,19 +381,144 @@ class OPS_place_product(Operator):
             obj_product_bp.select = True
             bpy.context.scene.objects.active = obj_product_bp
             return{'FINISHED'}
-            
+
     def execute(self,context):
         wm = bpy.context.window_manager
         dm = context.scene.mv.dm
         obj = bpy.data.objects[self.active_obj_id]
-        grp_wall = dm.get_wall_group(obj)
+        grp_wall = self.get_placement_wall(obj)
+        grp_sel_product = dm.get_product_group(obj)
+        grp_product = self.get_temp_group()
+        wall_length = grp_wall.mv.get_x().location.x
         
-        grp = bpy.data.groups[const.temp_group]
-        grp.mv.name_group = self.get_group_name()
-        category_type = dm.Libraries.get_category_type_from_filepath(self.filepath) #TODO: IMPLEMENT READ CATEGORY PROPERTIES FROM FILE
-        grp.mv.category_type = category_type
-        if grp_wall:
+        start_x = 0
+        end_x = 0
+        quantity = self.quantity
+        
+        place_as_return = False
+        
+        if grp_sel_product:
+            placement = wm.mv.placement_on_product
+            if placement == 'FILL_LEFT':
+                start_x = grp_sel_product.mv.get_bp().location.x - grp_sel_product.mv.get_available_space('LEFT')
+                end_x = grp_sel_product.mv.get_bp().location.x
             
+            if placement == 'LEFT':
+                if grp_sel_product.mv.category_type == 'CORNER':
+                    if grp_sel_product.mv.left_x_distance_from_wall() > 1:
+                        place_as_return = True
+                        start_x = grp_sel_product.mv.get_bp().location.x - math.fabs(grp_sel_product.mv.get_y().location.y) - (grp_product.mv.get_x().location.x * quantity)
+                        end_x = grp_sel_product.mv.get_bp().location.x - math.fabs(grp_sel_product.mv.get_y().location.y)
+                    else:
+                        start_x = grp_wall.mv.get_x().location.x - math.fabs(grp_sel_product.mv.get_y().location.y) - (grp_product.mv.get_x().location.x * quantity)
+                        end_x = grp_wall.mv.get_x().location.x - math.fabs(grp_sel_product.mv.get_y().location.y)
+                else:
+                    if grp_sel_product.mv.get_bp().rotation_euler.z > 0:
+                        place_as_return = True
+                    start_x = grp_sel_product.mv.get_bp().location.x - (grp_product.mv.get_x().location.x * quantity)
+                    end_x = grp_sel_product.mv.get_bp().location.x
+                
+            if placement == 'FILL_RIGHT':
+                start_x = grp_sel_product.mv.get_bp().location.x + grp_sel_product.mv.get_x().location.x
+                end_x = start_x + grp_sel_product.mv.get_available_space('RIGHT')
+            
+            if placement == 'RIGHT':
+                if grp_sel_product.mv.category_type == 'CORNER' and grp_sel_product.mv.get_bp().rotation_euler.z < 0:
+                    if grp_sel_product.mv.right_x_distance_from_wall() > 1:
+                        place_as_return = True
+                        start_x = grp_sel_product.mv.get_x().location.x
+                        end_x = start_x + (grp_product.mv.get_x().location.x * quantity)
+                    else:
+                        start_x = grp_sel_product.mv.get_x().location.x
+                        end_x = start_x + (grp_product.mv.get_x().location.x * quantity)
+                else:
+                    if grp_sel_product.mv.get_bp().rotation_euler.z < 0:
+                        place_as_return = True
+                    start_x = grp_sel_product.mv.get_bp().location.x + grp_sel_product.mv.get_x().location.x
+                    end_x = start_x + (grp_product.mv.get_x().location.x * quantity)
+            
+            if placement == 'CENTER':
+                space = grp_product.mv.get_x().location.x * quantity
+                start_x = grp_sel_product.mv.get_bp().location.x + (grp_sel_product.mv.get_x().location.x / 2) - (space / 2)
+                end_x = grp_sel_product.mv.get_bp().location.x + (grp_sel_product.mv.get_x().location.x / 2) + (space / 2)
+            
+        else:
+            
+            placement = wm.mv.placement_on_wall
+            if placement == 'FILL_WALL':
+                start_x = self.left_offset
+                end_x = wall_length - self.right_offset
+            
+            if placement == 'LEFT':
+                start_x = self.left_offset
+                end_x = (grp_product.mv.get_x().location.x * quantity) + self.left_offset
+
+            if placement == 'CENTER':
+                start_x = (wall_length / 2) - ((grp_product.mv.get_x().location.x * quantity) / 2)
+                end_x = (wall_length / 2) - ((grp_product.mv.get_x().location.x * quantity) / 2) + (grp_product.mv.get_x().location.x * quantity)
+
+            if placement == 'RIGHT':
+                start_x = wall_length - (grp_product.mv.get_x().location.x * quantity) - self.right_offset
+                end_x = wall_length - self.right_offset
+                
+        if grp_product.mv.category_type == 'CORNER':
+            if placement == 'RIGHT':
+                self.place_corner_product(grp_product,grp_wall,end_x,math.radians(-90))
+            else:
+                self.place_corner_product(grp_product,grp_wall,start_x,0)
+        else:
+            if place_as_return:
+                self.place_product_return(grp_wall, grp_sel_product, grp_product, placement)
+            else:
+                self.place_products(self.filepath, quantity, grp_wall, start_x, end_x)
+        
+        return{'FINISHED'}
+    
+    def place_product_return(self,grp_wall,grp_sel_product,grp_product,placement):
+        dm = bpy.context.scene.mv.dm
+        grp_product.mv.name_group = self.get_group_name()
+        dm.add_product_to_wall(grp_product,grp_wall)
+        obj_bp = grp_product.mv.get_bp()
+        obj_bp.location.x = grp_sel_product.mv.get_bp().location.x
+        
+        if placement == 'LEFT':
+            if grp_sel_product.mv.category_type == 'CORNER':
+                obj_bp.location.y = (grp_product.mv.get_x().location.x + math.fabs(grp_sel_product.mv.get_y().location.y))*-1
+            else:
+                obj_bp.location.y = grp_sel_product.mv.get_bp().location.y - grp_product.mv.get_x().location.x
+            obj_bp.rotation_euler.z = math.radians(90)
+
+        if placement == 'RIGHT':
+            if grp_sel_product.mv.category_type == 'CORNER':
+                obj_bp.location.y = (math.fabs(grp_sel_product.mv.get_x().location.x))*-1
+            else:
+                obj_bp.location.y = grp_sel_product.mv.get_bp().location.y - grp_sel_product.mv.get_x().location.x
+            obj_bp.rotation_euler.z = math.radians(-90)
+
+    def place_corner_product(self,grp_product,grp_wall,x_loc,z_rot):
+        dm = bpy.context.scene.mv.dm
+        grp = dm.retrieve_data_from_library(self.filepath)
+        grp.mv.name_group = self.get_group_name()
+        dm.add_product_to_wall(grp,grp_wall)
+        grp.mv.get_bp().location.x = x_loc
+        grp.mv.get_bp().rotation_euler.z = z_rot
+        grp.mv.category_type = dm.Libraries.get_category_type_from_filepath(self.filepath)
+    
+    def place_products(self,filepath,qty,grp_wall,start_x,end_x):
+        dm = bpy.context.scene.mv.dm
+        product_width = (end_x - start_x) / qty
+        for index in range(qty):
+            grp = dm.retrieve_data_from_library(self.filepath)
+            grp.name = self.get_group_name()
+            dm.add_product_to_wall(grp,grp_wall)
+            grp.mv.get_bp().location.x = start_x + (product_width * index)
+            grp.mv.get_x().location.x = product_width
+            
+    def get_placement_wall(self,obj):
+        dm = bpy.context.scene.mv.dm
+        wm = bpy.context.window_manager
+        grp_wall = dm.get_wall_group(obj)
+        if grp_wall:
             grp_product = dm.get_product_group(obj)
             if grp_product:
                 if grp_product.mv.category_type == 'CORNER': #PLACE ON NEXT OR PREV WALL IF CORNER CAB
@@ -399,97 +530,21 @@ class OPS_place_product(Operator):
                         grp_wall_temp = grp_product.mv.get_connected_wall('RIGHT')
                         if grp_wall_temp:
                             wall_length = grp_wall.mv.get_x().location.x
-                            if obj_bp.location.x > wall_length - 1: #1 INCH THRESHHOLD TO PLACE ON NEXT WALL
-                                grp_wall = grp_wall_temp #PLACE CABINET ON WALL TO RIGHT
-                            
-            dm.add_product_to_wall(grp,grp_wall)
-            self.place_product(grp,0)
-            for index in range(1,self.quantity):
-                grp = dm.retrieve_data_from_library(self.filepath)
-                grp.name = self.get_group_name()
-                dm.add_product_to_wall(grp,grp_wall)
-                self.place_product(grp,index)
-                
-        return{'FINISHED'}
+                            if obj_bp.location.x > wall_length - 1:    #1 INCH THRESHHOLD TO PLACE ON NEXT WALL
+                                grp_wall = grp_wall_temp               #PLACE CABINET ON WALL TO RIGHT
+            return grp_wall
 
+    def get_temp_group(self):
+        dm = bpy.context.scene.mv.dm
+        grp = bpy.data.groups[const.temp_group]
+        grp.mv.name_group = self.get_group_name()
+        category_type = dm.Libraries.get_category_type_from_filepath(self.filepath)
+        grp.mv.category_type = category_type
+        return grp
+        
     def get_group_name(self):
         filename, ext = os.path.splitext(os.path.basename(self.filepath))
         return filename
-    
-    def place_product(self,grp_product,index):
-        wm = bpy.context.window_manager
-        dm = bpy.context.scene.mv.dm
-        obj = bpy.data.objects[self.active_obj_id]
-        
-        grp_sel_product = dm.get_product_group(obj)
-        grp_sel_wall = dm.get_wall_group(obj)
-        obj_product_bp = grp_product.mv.get_bp()
-        grp_wall = dm.get_wall_group(obj_product_bp)
-        obj_wall_bp = grp_wall.mv.get_bp()
-        
-        product_width = grp_product.mv.get_x().location.x
-        wall_length = grp_wall.mv.get_x().location.x
-        
-        obj_product_bp.parent = None #THIS IS DONE TO ALLOW THE GET AVAILABLE SPACE TO CALCULATE CORRECTLY
-        
-        if grp_sel_product:
-            
-            if wm.mv.placement_on_product == 'FILL_LEFT':
-                space = grp_sel_product.mv.get_available_space('LEFT')
-                product_width = space / self.quantity
-                obj_product_bp.location.x = grp_sel_product.mv.get_bp().location.x - space + (product_width * index)
-            
-            if wm.mv.placement_on_product == 'LEFT':
-                if grp_sel_wall == grp_wall:
-                    obj_product_bp.location.x = grp_sel_product.mv.get_bp().location.x - (product_width * (index + 1))
-                else:
-                    obj_product_bp.location.x = wall_length - product_width - math.fabs(grp_sel_product.mv.get_y().location.y)
-                
-            if wm.mv.placement_on_product == 'CENTER':
-                obj_product_bp.location.x = grp_sel_product.mv.get_bp().location.x + (grp_sel_product.mv.get_x().location.x / 2) - (product_width / 2)
-                
-            if wm.mv.placement_on_product == 'RIGHT':
-                if grp_sel_wall == grp_wall:
-                    if grp_product.mv.category_type == 'CORNER':
-                        x_loc = grp_sel_product.mv.get_bp().location.x + grp_sel_product.mv.get_x().location.x
-                        obj_product_bp.location.x = x_loc + product_width
-                        obj_product_bp.rotation_euler.z = math.radians(-90)
-                    else:
-                        x_loc = grp_sel_product.mv.get_bp().location.x + grp_sel_product.mv.get_x().location.x
-                        obj_product_bp.location.x = x_loc + (product_width * index)
-                else:
-                    if grp_product.mv.category_type == 'CORNER':
-                        obj_product_bp.location.x = grp_sel_product.mv.get_x().location.x + product_width
-                        obj_product_bp.rotation_euler.z = math.radians(-90)
-                    else:
-                        obj_product_bp.location.x = grp_sel_product.mv.get_x().location.x
-                
-            if wm.mv.placement_on_product == 'FILL_RIGHT':
-                obj_product_bp.location.x = 0
-            
-        else:
-
-            if wm.mv.placement_on_wall == 'FILL_WALL':
-                product_width = (wall_length - (self.left_offset + self.right_offset)) / self.quantity
-                grp_product.mv.get_x().location.x = product_width
-            
-            if wm.mv.placement_on_wall == 'LEFT' or wm.mv.placement_on_wall == 'FILL_WALL':
-                obj_product_bp.location.x = self.left_offset if index == 0 else self.left_offset + (product_width * index)
-
-            if wm.mv.placement_on_wall == 'CENTER':
-                obj_product_bp.location.x = (wall_length / 2) - ((product_width * self.quantity) / 2) + (product_width * index)
-                    
-            if wm.mv.placement_on_wall == 'RIGHT':
-                if grp_product.mv.category_type == 'CORNER':
-                    obj_product_bp.location.x = wall_length
-                    obj_product_bp.rotation_euler.z = math.radians(-90)
-                else:
-                    obj_product_bp.location.x = wall_length - (product_width * (index + 1)) - self.right_offset
-                    
-        bpy.ops.object.select_all(action='DESELECT')
-        obj_product_bp.select = True
-        bpy.context.scene.objects.active = obj_product_bp
-        obj_product_bp.parent = obj_wall_bp
         
     def draw(self, context):
         layout = self.layout
@@ -507,13 +562,13 @@ class OPS_place_product(Operator):
             obj_parent = obj.parent
             if obj_parent is None:
                 dict['BP'] = obj
-            if obj.mv.type == 'VPDIMX' or obj.mv.Type == 'VPDIMX':
+            if obj.mv.type == 'VPDIMX':
                 if obj_parent.parent is None:
                     dict['X'] = obj
-            if obj.mv.type == 'VPDIMY' or obj.mv.Type == 'VPDIMY':
+            if obj.mv.type == 'VPDIMY':
                 if obj_parent.parent is None:
                     dict['Y'] = obj
-            if obj.mv.type == 'VPDIMZ' or obj.mv.Type == 'VPDIMZ':
+            if obj.mv.type == 'VPDIMZ':
                 if obj_parent.parent is None:
                     dict['Z'] = obj
                 

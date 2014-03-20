@@ -21,11 +21,7 @@ import bpy
 
 import os,math
 
-from bpy.types import (Header, 
-                       Menu, 
-                       Panel, 
-                       Operator,
-                       PropertyGroup)
+from bpy.types import PropertyGroup
 
 from bpy.props import (StringProperty,
                        BoolProperty,
@@ -134,12 +130,6 @@ class enums():
 
     enum_product_category_types = [('NONE',"",""),
                                    ('CORNER',"","")]
-
-#     enum_scene_tabs = [('INFO',"",""),
-#                        ('PROMPTS',"","")]
-# 
-#     enum_world_tabs = [('INFO',"",""),
-#                        ('PROMPTS',"","")]
 
 class events():
     def update_pointer_libraries_path(self, context):
@@ -2519,12 +2509,11 @@ bpy.utils.register_class(fd_material_slot)
 
 class fd_object(PropertyGroup):
     index = IntProperty(name="Index")
-    Type = EnumProperty(name="type",items=enums.enum_object_types,description="Select the Object Type.",default='NONE') #TODO: REMOVE This is only here for backwards compatibility
+
     type = EnumProperty(name="type",items=enums.enum_object_types,description="Select the Object Type.",default='NONE')
     
     #These are the group names this object is assign to 
     id_wall = StringProperty(name="LinkID Wall")
-    id_plane = StringProperty(name="LinkID Plane")
     id_product = StringProperty(name="LinkID Product")
     id_insert = StringProperty(name="LinkID Insert")
     id_part = StringProperty(name="LinkID Part")
@@ -2532,26 +2521,19 @@ class fd_object(PropertyGroup):
     #This is the human readable name of the object
     name_object = StringProperty(name="Object Name")
     
-    #This is the human readable name of the group this object belongs to
-    #NOTE: These properties are only assigned to the bp object of the smart group
-    #      It is needed when dynamically creating groups when appending products or inserts.
-#     name_product = StringProperty(name="Name Product")
-#     name_insert = StringProperty(name="Name Insert")
-#     name_part = StringProperty(name="Name Part")
-    
     #Object Options - MUST BE STORED HERE TO PERSIST
     use_as_wall_subtraction = BoolProperty(name="Use As Wall Subtraction",description="Use this object to cut a hole in the wall its added to. Only For Meshes.",default=False)
     use_as_item_number = BoolProperty(name="Use As Item Number",description="Use this object to display the product item number. Only For TEXTPRODUCT.",default=False)
     use_as_mesh_hook = BoolProperty(name="Use As Mesh Hook",description="Use this object to hook to deform a mesh. Only for Empties",default=False)
     
-    #TODO: Implement Pointers for Objects and Groups
+    #Used for the pointer library functionality
     library_name = StringProperty(name="Library Name")
     pointer_name = StringProperty(name="Pointer Name")
     
-    #TODO: implement the standard collections or remove this and add to RNA Structure
+    #Custom Properties
     PromptPage = bpy.props.PointerProperty(name="Prompt Page",type=mvPromptPage)
     
-    #MOVE TO SOURCE
+    #MOVE TO BSOURCE
     material_slot_col = bpy.props.CollectionProperty(name="Material Slot Collection",type= fd_material_slot)
     
     def draw_properties(self,layout,name):
@@ -3156,14 +3138,13 @@ class fd_object_col(PropertyGroup):
 bpy.utils.register_class(fd_object_col)
 
 class fd_group(PropertyGroup):
-    Type = EnumProperty(name="Type",items=enums.enum_group_types,description="Select the Group Type.",default='NONE')
     type = EnumProperty(name="Type",items=enums.enum_group_types,description="Select the Group Type.",default='NONE')
     category_type = EnumProperty(name="Category Type",items=enums.enum_product_category_types,description="Select the Group Type.",default='NONE')
     
     tabs = EnumProperty(name="tabs",items=enums.enum_group_tabs,description="Group Tabs",default='INFO')
     
     #This is the human readable name for the group
-    name_group = StringProperty(name="Product Name")#TODO: make sure the bpy.data.group gets renames too
+    name_group = StringProperty(name="Product Name")
     
     #LinkID's to Main group objects Used for Products, Inserts, and Parts
     bp_id = StringProperty(name="BP LinkID")
@@ -3187,12 +3168,6 @@ class fd_group(PropertyGroup):
     
     #Collection that holds all group objects
     Objects = bpy.props.PointerProperty(name="Objects",type=fd_object_col)
-
-    current_mesh_count = IntProperty(name="Current Mesh Count",default = 1)
-    current_empty_count = IntProperty(name="Current Empty Count",default = 1)
-    current_curve_count = IntProperty(name="Current Curve Count",default = 1)
-    current_text_count = IntProperty(name="Current Text Count",default = 1)
-    current_group_count = IntProperty(name="Current Text Count",default = 1)
 
     def add_object_to_group_collection(self,obj):
         """ NOTE: Every Object that is a direct child of the
@@ -3239,21 +3214,16 @@ class fd_group(PropertyGroup):
         
     def index_object(self,obj):
         if obj.mv.type == 'NONE' and obj.type == 'MESH':
-            obj.mv.index = self.current_mesh_count
-            self.current_mesh_count += 1
+            obj.mv.index = len(self.Objects.col_mesh) + 1
         if obj.mv.type == 'NONE' and obj.type == 'EMPTY':
-            obj.mv.index = self.current_empty_count
-            self.current_empty_count += 1
+            obj.mv.index = len(self.Objects.col_empty) + 1
         if obj.mv.type == 'NONE' and obj.type == 'CURVE':
-            obj.mv.index = self.current_curve_count
-            self.current_curve_count += 1
+            obj.mv.index = len(self.Objects.col_curve) + 1
         if obj.mv.type == 'NONE' and obj.type == 'FONT':
-            obj.mv.index = self.current_text_count
-            self.current_text_count += 1
+            obj.mv.index = len(self.Objects.col_font) + 1
         if obj.mv.type in {'BPPRODUCT','BPINSERT','BPPART'}:
-            obj.mv.index = self.current_group_count
-            self.current_group_count += 1
-            
+            obj.mv.index = len(self.Objects.col_group) + 1
+
     def delete_object_from_group(self,obj):
         pass
     
@@ -3282,18 +3252,6 @@ class fd_group(PropertyGroup):
     def get_cage(self):
         if self.cage_id in bpy.data.objects:
             return bpy.data.objects[self.cage_id]
-
-    def add_bool(self,obj):
-        obj_bp = self.get_bp()
-        for child in obj_bp.children:
-            if child.type == 'MESH' and child.mv.type != 'BPPRODUCT':
-                bpy.context.scene.objects.active = child
-                bpy.ops.object.modifier_add(type='BOOLEAN')
-                modname = 'BOOL ' + obj.name
-                child.modifiers["Boolean"].name = modname
-                child.modifiers[modname].operation = 'UNION'
-                child.modifiers[modname].object = obj
-                obj.hide = True
 
     def get_active_object(self):
         """ NOTE: This is uesd to get the object
@@ -3330,27 +3288,17 @@ class fd_group(PropertyGroup):
                 if objname in bpy.data.objects:
                     return bpy.data.objects[objname]
                 
-    def get_connected_wall(self,direction):#TODO: FINISH THIS FUNCTION
-        dm = bpy.context.scene.mv.dm
-        grp = bpy.data.groups[self.name]
-        grp_wall = dm.get_wall_group(grp)
-        
-        if direction == 'LEFT':
-            obj_wall_bp = grp_wall.mv.get_bp()
-            for con in obj_wall_bp.constraints:
-                if con.type == 'COPY_LOCATION':
-                    if con.target:
-                        return dm.get_wall_group(con.target)
-                    
-        if direction == 'RIGHT':
-            obj_wall_x = grp_wall.mv.get_x()
-            for group in bpy.data.groups:
-                if group.mv.type == 'WALL':
-                    obj_nextwall_bp = group.mv.get_bp()
-                    for con in obj_nextwall_bp.constraints:
-                        if con.type == 'COPY_LOCATION':
-                            if con.target == obj_wall_x:
-                                return group
+    def add_bool(self,obj):
+        obj_bp = self.get_bp()
+        for child in obj_bp.children:
+            if child.type == 'MESH' and child.mv.type != 'BPPRODUCT':
+                bpy.context.scene.objects.active = child
+                bpy.ops.object.modifier_add(type='BOOLEAN')
+                modname = 'BOOL ' + obj.name
+                child.modifiers["Boolean"].name = modname
+                child.modifiers[modname].operation = 'UNION'
+                child.modifiers[modname].object = obj
+                obj.hide = True
 
     def draw_properties(self,layout,advanced=False):
         if advanced:
@@ -3830,52 +3778,143 @@ class fd_group(PropertyGroup):
                         if hook.mv.name_object == vgroup.name:
                             fd_utils.hook_vertex_group_to_object(mesh,vgroup.name,hook)
                 
-    def get_available_space(self,direction):
+    def get_connected_wall(self,direction):#TODO: FINISH THIS FUNCTION
         dm = bpy.context.scene.mv.dm
-        if self.type == 'PRODUCT':
-            
-            obj_self_bp = self.get_bp()
-            grp_self = dm.get_product_group(obj_self_bp)
-            grp_wall = dm.get_wall_group(obj_self_bp)
-            if grp_wall:
-                list_obj_bp = dm.get_product_list_from_wall_grp(grp_wall)
-                wall_length = grp_wall.mv.get_x().location.x
+        grp = bpy.data.groups[self.name]
+        grp_wall = dm.get_wall_group(grp)
+        
+        if direction == 'LEFT':
+            obj_wall_bp = grp_wall.mv.get_bp()
+            for con in obj_wall_bp.constraints:
+                if con.type == 'COPY_LOCATION':
+                    if con.target:
+                        return dm.get_wall_group(con.target)
+                    
+        if direction == 'RIGHT':
+            obj_wall_x = grp_wall.mv.get_x()
+            for group in bpy.data.groups:
+                if group.mv.type == 'WALL':
+                    obj_nextwall_bp = group.mv.get_bp()
+                    for con in obj_nextwall_bp.constraints:
+                        if con.type == 'COPY_LOCATION':
+                            if con.target == obj_wall_x:
+                                return group
                 
-                if len(list_obj_bp) > 0:
-                    for index, obj_bp in enumerate(list_obj_bp):
-                        if obj_bp.name == obj_self_bp.name:
-                            if direction == 'LEFT':
-                                if index > 0:
-                                    
-                                    obj_left_bp = list_obj_bp[index-1]
-                                    grp_left_product = dm.get_product_group(obj_left_bp)
-                                    
-                                    if fd_utils.check_for_group_collision(grp_self,grp_left_product):
-                                        left_product_width = grp_left_product.mv.get_x().location.x
-                                        if obj_self_bp.rotation_euler.z < 0:
-                                            return (obj_self_bp.location.x - math.fabs(grp_self.mv.get_y().location.y)) - (obj_left_bp.location.x + left_product_width)
-                                        else:
-                                            return obj_self_bp.location.x - (obj_left_bp.location.x + left_product_width)
-                                        
-                                else:
-                                    
-                                    return obj_self_bp.location.x
+    def get_adjecent_product(self,direction):
+        """ This function will return the product
+            to the left or right. The product must
+            be on the same wall and collide on 
+            the Z or Y axis.
+            arg1: direction to check for product collison
+                  {LEFT,RIGHT}
+        """
+        dm = bpy.context.scene.mv.dm
+        obj_self_bp = self.get_bp()
+        grp_self = dm.get_product_group(obj_self_bp)
+        grp_wall = dm.get_wall_group(obj_self_bp)
+        if grp_wall:
+            
+            list_obj_bp = dm.get_product_bp_list_from_wall_grp(grp_wall)
+            list_obj_left_bp = []
+            list_obj_right_bp = []
+            for index, obj_bp in enumerate(list_obj_bp):
+                if obj_bp.name == obj_self_bp.name:
+                    list_obj_left_bp = list_obj_bp[:index]
+                    list_obj_right_bp = list_obj_bp[index + 1:]
+                    break
+                
+            if direction == 'LEFT':
+                list_obj_left_bp.reverse()
+                for obj_bp in list_obj_left_bp:
+                    grp_left_product = dm.get_product_group(obj_bp)
+                    if fd_utils.check_for_group_height_collision(grp_self,grp_left_product):
+                        return grp_left_product
 
-                            if direction == 'RIGHT':
-                                if len(list_obj_bp) > index + 1:
-                                    obj_right_bp = list_obj_bp[index+1]
-                                    grp_right_product = dm.get_product_group(obj_right_bp)
-                                    if fd_utils.check_for_group_collision(grp_self,grp_right_product):
-                                        if obj_right_bp.rotation_euler.z < 0: #CORNER CABINET
-                                            return (obj_right_bp.location.x - math.fabs(grp_right_product.mv.get_y().location.y)) - (obj_self_bp.location.x + self.get_x().location.x)
-                                        else:
-                                            return obj_right_bp.location.x - (obj_self_bp.location.x + self.get_x().location.x)
-                                else:
-                                    if obj_self_bp.rotation_euler.z < 0:
-                                        return wall_length - obj_self_bp.location.x
-                                    else:
-                                        return grp_wall.mv.get_x().location.x - (obj_self_bp.location.x +self.get_x().location.x)
+            if direction == 'RIGHT':
+                for obj_bp in list_obj_right_bp:
+                    grp_right_product = dm.get_product_group(obj_bp)
+                    if fd_utils.check_for_group_height_collision(grp_self,grp_right_product):
+                        return grp_right_product
+                    
+    def get_available_space(self,direction):
+        """ This function will return the available
+            space the product can move along the X axis
+            on the wall. 
+            arg1: direction to get distance {LEFT,RIGHT}
+            
+        """
+        dm = bpy.context.scene.mv.dm
 
+        obj_self_bp = self.get_bp()
+        
+        grp_self = dm.get_product_group(obj_self_bp)
+        grp_wall = dm.get_wall_group(obj_self_bp)
+        
+        if direction == 'LEFT':
+            grp_left_product = grp_self.mv.get_adjecent_product('LEFT')
+            if grp_left_product:
+                #FOUND PRODUCT TO LEFT ON SAME WALL
+                return (grp_self.mv.left_x_distance_from_wall() + grp_left_product.mv.right_x_distance_from_wall()) - grp_wall.mv.get_x().location.x
+
+            else:
+                grp_left_wall = grp_self.mv.get_connected_wall('LEFT')
+                if grp_left_wall:
+                    list_obj_bp = dm.get_product_bp_list_from_wall_grp(grp_left_wall)
+                    for obj_bp in list_obj_bp:
+                        grp_product = dm.get_product_group(obj_bp)
+                        if grp_product.mv.right_x_distance_from_wall() < grp_self.mv.y_distance_from_wall():
+                            if fd_utils.check_for_group_height_collision(grp_self,grp_product):
+                                #FOUND PRODUCT ON LEFT WALL
+                                return grp_self.mv.left_x_distance_from_wall() - grp_product.mv.y_distance_from_wall()
+                            
+                #NO COLLSION PRODUCT FOUND
+                return grp_self.mv.left_x_distance_from_wall()
+                    
+        if direction == 'RIGHT':
+            grp_right_product = grp_self.mv.get_adjecent_product('RIGHT')
+            if grp_right_product:
+                #FOUND PRODUCT TO RIGHT ON SAME WALL
+                return (grp_self.mv.right_x_distance_from_wall() + grp_right_product.mv.left_x_distance_from_wall()) - grp_wall.mv.get_x().location.x
+     
+            else:
+                grp_right_wall = grp_self.mv.get_connected_wall('RIGHT')
+                if grp_right_wall:
+                    list_obj_bp = dm.get_product_bp_list_from_wall_grp(grp_right_wall)
+                    for obj_bp in list_obj_bp:
+                        grp_product = dm.get_product_group(obj_bp)
+                        if grp_product.mv.left_x_distance_from_wall() < grp_self.mv.y_distance_from_wall():
+                            if fd_utils.check_for_group_height_collision(grp_self,grp_product):
+                                #FOUND PRODUCT ON LEFT WALL
+                                return grp_self.mv.right_x_distance_from_wall() - grp_product.mv.y_distance_from_wall()
+
+                #NO COLLSION PRODUCT FOUND
+                return grp_self.mv.right_x_distance_from_wall()
+
+    def y_distance_from_wall(self):
+        obj_bp = self.get_bp()
+        if obj_bp.rotation_euler.z < 0:
+            obj_x = self.get_x()
+            return math.fabs(obj_bp.location.y) + obj_x.location.x
+        else:
+            obj_y = self.get_y()
+            return math.fabs(obj_bp.location.y) + math.fabs(obj_y.location.y)
+        
+    def left_x_distance_from_wall(self):
+        obj_bp = self.get_bp()
+        if obj_bp.rotation_euler.z < 0:
+            return obj_bp.location.x - math.fabs(self.get_y().location.y)
+        else:
+            return obj_bp.location.x
+        
+    def right_x_distance_from_wall(self):
+        dm = bpy.context.scene.mv.dm
+        obj_bp = self.get_bp()
+        grp_wall = dm.get_wall_group(obj_bp)
+        if obj_bp.rotation_euler.z < 0:
+            return grp_wall.mv.get_x().location.x - obj_bp.location.x
+        else:
+            return grp_wall.mv.get_x().location.x - (obj_bp.location.x + self.get_x().location.x)
+        
 bpy.utils.register_class(fd_group)
 
 class fd_group_col(PropertyGroup):
@@ -3966,11 +4005,12 @@ class fd_item_col(PropertyGroup):
             self.col_item.remove(0)
             
         if os.path.exists(path):
-            folders = os.listdir(path)
-            for fullname in folders:
-                filename, fileext = os.path.splitext(fullname)
-                if fileext.upper() == '.PNG' or fileext.upper() == '.JPG' or fileext.upper() == '.JPEG' or fileext.upper() == '.WMF':
-                    self.add_library_item(filename,os.path.join(path,filename))
+            if os.path.isdir(path):
+                folders = os.listdir(path)
+                for fullname in folders:
+                    filename, fileext = os.path.splitext(fullname)
+                    if fileext.upper() == '.PNG' or fileext.upper() == '.JPG' or fileext.upper() == '.JPEG' or fileext.upper() == '.WMF':
+                        self.add_library_item(filename,os.path.join(path,filename))
 
 bpy.utils.register_class(fd_item_col)
 
@@ -4021,15 +4061,13 @@ class fd_category_col(PropertyGroup):
                         category.load_items()
 
     def is_valid_category(self,path):
-        #TODO: Implement category file settings
+        return True
         if os.path.exists(path):
             if os.path.isdir(path):
                 files = os.listdir(path)
                 for file in files:
-                    filename, file_ext = os.path.splitext(file)
-                    if file_ext == '.blend':
-                        return True
-        return False
+                    pass
+                    #TODO: Implement category file settings
 
 bpy.utils.register_class(fd_category_col)
 
@@ -4219,7 +4257,6 @@ class fd_pointer_library_col(PropertyGroup):
             layout.label("No Active Pointer Libraries. Check Library Path.",icon='ERROR')
 
     def draw_library_tabs(self, layout):
-#         box = layout.box()
         row = layout.column(align=True)
         row.prop_enum(self, "active_library_type", enums.enum_library_types[1][0], icon=const.icon_project, text="") 
         row.separator()
@@ -4387,7 +4424,7 @@ class fd_specgroup_col(PropertyGroup):
 bpy.utils.register_class(fd_specgroup_col)
 
 class fd_datamanager(PropertyGroup):
-    path = StringProperty(name="Path To Libraries",default="C:\\Program Files\\Microvellum Fluid Beta\\Library Data\\Projects")
+    path = StringProperty(name="Path To Libraries")
     
     #Collection of Pointer Libraries
     Libraries = PointerProperty(name="Collection Libraries",type=fd_pointer_library_col)
@@ -4482,11 +4519,6 @@ class fd_datamanager(PropertyGroup):
             Used to Set Group Name
             Used to Add group to Collection        
         """
-        
-        #HACK THIS IS USED TO FIX A NAMESPACE CHANGE
-        if grp.mv.type == 'NONE':
-            grp.mv.type = grp.mv.Type
-        
         scene = bpy.context.scene
         self.index_group(grp)
         
@@ -4514,12 +4546,6 @@ class fd_datamanager(PropertyGroup):
             obj.mv.id_insert = grp.mv.id_insert
             obj.mv.id_part = grp.mv.id_part
 
-            #NAMESPACE FIX
-            if obj.mv.Type == 'BPWALL' or obj.mv.Type == 'BPPRODUCT' or obj.mv.Type == 'BPINSERT' or obj.mv.Type == 'BPPART' or obj.mv.Type == 'VPDIMX' or obj.mv.Type == 'VPDIMY' or obj.mv.Type == 'VPDIMZ' or obj.mv.Type == 'CAGE':
-                obj.mv.type = obj.mv.Type
-            
-#             if obj.mv.type == 'BPWALL' or obj.mv.type == 'BPPRODUCT' or obj.mv.type == 'BPINSERT' or obj.mv.type == 'BPPART':
-#                 if not obj.parent:
             if grp.mv.type == 'WALL' and obj.mv.type == 'BPWALL':
                 obj_bp = obj
                 obj_bp.mv.name_object = grp.mv.name_group
@@ -4696,13 +4722,8 @@ class fd_datamanager(PropertyGroup):
         grp.mv.bp_id = obj_bp.name
         
     def index_group(self,grp):
-        scene = bpy.context.scene #MUST BE IN CORRECT SCENE TO CALL REGISERT GROUP
-        
-        if grp.mv.type == 'NONE':     #HACK TO FIX NAMESPACE CHANGE...WILL DELETE
-            grp.mv.type = grp.mv.Type #HACK TO FIX NAMESPACE CHANGE...WILL DELETE
-            
+        scene = bpy.context.scene
         grp.mv.room_index = scene.mv.index
-        
         if grp.mv.type == 'PRODUCT':
             grp.mv.product_index = self.Products.get_product_count() + 1
             self.set_group_name(grp)
@@ -4745,8 +4766,6 @@ class fd_datamanager(PropertyGroup):
             grp.mv.id_insert = grpname
         elif grp.mv.type == 'PART':
             grp.mv.id_part = grpname
-            
-        #TODO: SET IF I CAN SET THE BASEOINT OBJECT NAME HERE
 
     def set_object_name(self,obj):
         # OBJECTTYPE.RN.WN.PN.IN.TN.OBJINDEX.OBJNAME
@@ -4789,7 +4808,16 @@ class fd_datamanager(PropertyGroup):
             obj.name = objname #BLENDER OBJ NAME
             obj.mv.name = objname #FLUID DESINGER OBJ NAME
 
-    def get_product_list_from_wall_grp(self,grp_wall):
+    def get_active_library_path(self):
+        library = self.Libraries.get_active_pointer_library()
+        category = library.Categories.get_active_category()
+        return category.path
+
+    def get_product_bp_list_from_wall_grp(self,grp_wall):
+        """ This function will return all of the products
+            base points that are available on the wall.
+            arg1: wall to get base points from
+        """
         obj_bp_wall = grp_wall.mv.get_bp()
         list_obj_bp = []
         
@@ -4809,17 +4837,7 @@ class fd_datamanager(PropertyGroup):
             return bpy.data.groups[data.mv.id_wall]
         else:
             return None
-            
-    def get_plane_group(self,data):
-        if type(data) is bpy.types.Object:
-            for grp in data.users_group:
-                if grp.mv.type == 'PLANE':
-                    return grp
-        elif type(data) is bpy.types.Group:
-            return self.Planes.get_plane(data.mv.id_wall)
-        else:
-            return None
-            
+
     def get_product_group(self,data):
         if type(data) is bpy.types.Object:
             for grp in data.users_group:
@@ -4919,7 +4937,7 @@ class fd_scene(PropertyGroup):
     dm = PointerProperty(name="Data Manager",type= fd_datamanager)
     ui = PointerProperty(name="Interface",type= fd_interface)
     
-    active_material_index = IntProperty(name="Index Scene",min=-1,default = 0)
+    active_material_index = IntProperty(name="Active Material Index",min=-1,default = 0)
     
     #TODO: implement the standard collections or remove this and add to RNA Structure
     PromptPage = bpy.props.PointerProperty(name="Prompt Page",type=mvPromptPage)

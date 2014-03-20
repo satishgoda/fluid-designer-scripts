@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy, bgl
-from bpy.types import Header, Menu, Operator
+from bpy.types import Operator
 import math
 import bmesh
 
@@ -66,7 +66,6 @@ class OPS_add_wall_to_room(Operator):
         wm = context.window_manager
         layout = self.layout
         box = layout.box()
-        #box.label("Draw Wall Options",icon='SCRIPTPLUGINS')
         col = box.column(align=False)
         
         row = col.row(align=True)

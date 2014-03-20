@@ -27,7 +27,7 @@ from bpy.props import (StringProperty,
                        BoolVectorProperty,
                        PointerProperty,
                        EnumProperty)
-
+import os
 import fd_utils
 from fd_datablocks import const
 
@@ -53,9 +53,7 @@ class OPS_right_click(Operator):
         dm = context.scene.mv.dm
         obj = context.active_object
         if obj:
-            if obj.type == 'LAMP':
-                obj.mv.draw_object_data(layout,obj.name)
-            elif obj.type == 'CAMERA':
+            if obj.type in {'LAMP','CAMERA'}:
                 obj.mv.draw_object_data(layout,obj.name)
             else:
                 grp_wall = dm.get_wall_group(obj)
@@ -299,26 +297,93 @@ class OPS_start_debug(Operator):
         pydevd.settrace()
         return {'FINISHED'}
     
-# class OPS_bevel(Operator):
-#     bl_idname = "fd_general.bevel"
-#     bl_label = "Bevel"
-#     bl_options = {'UNDO'}
-#     
-#     offset = FloatProperty(name="Offset",default=1)
-#     segments = IntProperty(name="")
-#     @classmethod
-#     def poll(cls, context):
-#         return True
-# 
-#     def execute(self, context):
-#         return {'FINISHED'}
-# 
-#     def invoke(self,context,event):
-#         wm = context.window_manager
-#         return wm.invoke_props_dialog(self, width=400)
-# 
-#     def draw(self, context):
-#         layout = self.layout
+class OPS_render_thumbnail(Operator):
+    bl_idname = "fd_general.render_thumbnail"
+    bl_label = "Render Thumbnail"
+    bl_options = {'UNDO'}
+    
+    THUMB_RENDER_RES_X = 1080
+    THUMB_RENDER_RES_Y = 1080
+    THUMB_RENDER_SAMPLES = 200
+    THUMB_CAM_X_ROT = 1.047198
+    THUMB_CAM_Y_ROT = 1.047198
+    THUMB_SUN_ROT = .785398
+    
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def execute(self, context):
+        scene = context.scene
+        dm = scene.mv.dm
+        
+        filepath = bpy.data.filepath
+        filename = os.path.basename(filepath)
+        thumbnail, worldext = os.path.splitext(filename)
+        grp = None
+        
+        for obj in bpy.data.objects:
+            grp = dm.get_product_group(obj)
+            if grp:
+                break
+            
+        if grp is None:
+            for obj in bpy.data.objects:
+                grp = dm.get_insert_group(obj)
+                if grp:
+                    break
+
+        if grp is None:
+            for obj in bpy.data.objects:
+                grp = dm.get_part_group(obj)
+                if grp:
+                    break
+
+        bpy.ops.object.camera_add(view_align=True)
+        camera = context.active_object
+        scene.camera = camera
+        
+        override = {}
+        for window in bpy.context.window_manager.windows:
+            screen = window.screen
+             
+            for area in screen.areas:
+                if area.type == 'VIEW_3D':
+                    override = {'window': window, 'screen': screen, 'area': area}
+                    bpy.ops.view3d.camera_to_view(override)
+                    break
+
+        bpy.data.cameras[0].clip_end = 9999
+        
+        camera.rotation_euler = (self.THUMB_CAM_X_ROT, 0.0, self.THUMB_CAM_Y_ROT)   
+        
+        for obj in grp.objects:
+            obj.select = True
+        
+        bpy.ops.view3d.camera_to_view_selected()  
+        
+        bpy.ops.object.lamp_add(type='SUN')    
+        obj_Sun = bpy.context.object
+        obj_Sun.select = False 
+        obj_Sun.rotation_euler = (self.THUMB_SUN_ROT, self.THUMB_SUN_ROT, 0.0)  
+
+        scene.cycles.film_transparent = True
+        scene.render.resolution_x = self.THUMB_RENDER_RES_X
+        scene.render.resolution_y = self.THUMB_RENDER_RES_Y
+        scene.cycles.samples = self.THUMB_RENDER_SAMPLES
+        scene.render.filepath = os.path.join(os.path.dirname(filepath),thumbnail)
+        
+        bpy.ops.render.render('INVOKE_AREA',write_still=True)
+
+        return {'FINISHED'}
+    
+    def invoke(self,context,event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=400)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self,"save_name")
 
 #------REGISTER
 classes = [
@@ -330,7 +395,8 @@ classes = [
            OPS_show_object_prompts,
            OPS_error,
            OPS_start_debug,
-           OPS_set_cursor_location
+           OPS_set_cursor_location,
+           OPS_render_thumbnail
            ]
 
 def register():

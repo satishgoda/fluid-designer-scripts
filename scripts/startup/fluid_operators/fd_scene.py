@@ -43,19 +43,19 @@ class OPS_render_scene(Operator):
     def execute(self, context):
         scene = context.scene.mv
         
-        for obj in context.scene.objects:
-            if obj.hide or obj.mv.Type == 'CAGE':
-                obj.cycles_visibility.camera = False
-                obj.cycles_visibility.diffuse = False
-                obj.cycles_visibility.glossy = False
-                obj.cycles_visibility.transmission = False
-                obj.cycles_visibility.shadow = False
-            else:
-                obj.cycles_visibility.camera = True
-                obj.cycles_visibility.diffuse = True
-                obj.cycles_visibility.glossy = True
-                obj.cycles_visibility.transmission = True
-                obj.cycles_visibility.shadow = True
+#         for obj in context.scene.objects:
+#             if obj.hide or obj.mv.type == 'CAGE':
+#                 obj.cycles_visibility.camera = False
+#                 obj.cycles_visibility.diffuse = False
+#                 obj.cycles_visibility.glossy = False
+#                 obj.cycles_visibility.transmission = False
+#                 obj.cycles_visibility.shadow = False
+#             else:
+#                 obj.cycles_visibility.camera = True
+#                 obj.cycles_visibility.diffuse = True
+#                 obj.cycles_visibility.glossy = True
+#                 obj.cycles_visibility.transmission = True
+#                 obj.cycles_visibility.shadow = True
         #render
         bpy.ops.render.render('INVOKE_DEFAULT')
 
@@ -73,11 +73,9 @@ class OPS_render_settings(Operator):
         return wm.invoke_props_dialog(self, width=400)
 
     def draw(self, context):
-        wm = context.window_manager
         layout = self.layout
         scene = bpy.context.scene
         rd = scene.render
-        space = context.space_data
         image_settings = rd.image_settings
         
         box = layout.box()
@@ -138,10 +136,6 @@ class OPS_update_world_from_template(Operator):
     def draw(self, context):
         layout = self.layout
         layout.label("Under Construction")
-
-
-        
-
 
 class OPS_add_locrot_keyframe(Operator):
     bl_idname = "fluidscene.add_locrot_keyframe"
@@ -229,71 +223,41 @@ class OPS_add_camera_keyframe(Operator):
         bpy.context.object.empty_draw_size = 15
         return {'FINISHED'}        
     
-class OPS_create_thumbnail(Operator):
-    bl_idname = "fd_scene.create_thumbnail"
-    bl_label = "Create Thumbnail"
+class OPS_save_file_to_active_category(Operator):
+    bl_idname = "fd_scene.save_file_to_active_category"
+    bl_label = "Save Product"
     bl_options = {'UNDO'}
     
-    THUMB_RENDER_RES_X = 1080
-    THUMB_RENDER_RES_Y = 1080
-    THUMB_RENDER_SAMPLES = 200
-    THUMB_CAM_X_ROT = 1.047198
-    THUMB_CAM_Y_ROT = 1.047198
-    THUMB_SUN_ROT = .785398
+    save_name = StringProperty(name="Name")
     
     @classmethod
     def poll(cls, context):
-        if bpy.data.is_saved == True:
-            return True
-        else:
-            return False
-            
-    def execute(self, context):
-        Scene = bpy.data.scenes["Scene"]
-        SelObjs = []
-        Objects = bpy.context.selected_objects
-        Filepath = bpy.data.filepath
-        ImageFilePath = Filepath[:-6]
-        
-        for obj in Objects:
-            SelObjs.append(obj)  
-            
-        if bpy.context.scene.camera == None:
-            bpy.ops.object.camera_add(view_align=False)
-        bpy.ops.view3d.camera_to_view()
-        bpy.data.cameras[0].clip_end = 9999
-          
-        Cam = bpy.data.scenes["Scene"].camera  
-        Cam.rotation_euler = (self.THUMB_CAM_X_ROT, 0.0, self.THUMB_CAM_Y_ROT)   
-        
-        for obj in SelObjs:
-            obj.select=True
-        
-        bpy.ops.view3d.camera_to_view_selected()  
-        
-        bpy.ops.object.lamp_add(type='SUN')    
-        obj_Sun = bpy.context.object
-        obj_Sun.select = False 
-        obj_Sun.rotation_euler = (self.THUMB_SUN_ROT, self.THUMB_SUN_ROT, 0.0)  
-        
-        Scene.cycles.film_transparent = True
-        Scene.render.resolution_x = self.THUMB_RENDER_RES_X
-        Scene.render.resolution_y = self.THUMB_RENDER_RES_Y
-        Scene.cycles.samples = self.THUMB_RENDER_SAMPLES
-        Scene.render.display_mode = 'WINDOW'
-        Scene.render.filepath = ImageFilePath
-        
-        bpy.ops.render.render('INVOKE_AREA', write_still=True)
-            
-        return {'FINISHED'}    
+        return True
 
+    def execute(self, context):
+        scene = context.scene
+        dm = scene.mv.dm
+        filepath = dm.get_active_library_path()
+        bpy.ops.wm.save_as_mainfile(filepath=os.path.join(filepath,self.save_name + ".blend"))
+        return {'FINISHED'}
+    
+    def invoke(self,context,event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=400)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self,"save_name")
+        
+
+        
 #------REGISTER
 classes = [
            OPS_create_scene,
            OPS_render_scene,
            OPS_render_settings,
            OPS_render_preview,
-           OPS_create_thumbnail
+           OPS_save_file_to_active_category
            ]
 
 def register():

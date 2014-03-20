@@ -1,0 +1,900 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.4.0
+shader node_musgrave_texture
+param	int	use_mapping	0 		 %read{9,9} %write{2147483647,-1}
+param	matrix	mapping	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0		 %read{10,10} %write{2147483647,-1}
+param	string	Type	"fBM" 		 %read{12,246} %write{2147483647,-1}
+param	float	Dimension	2 		 %read{1,1} %write{2147483647,-1}
+param	float	Lacunarity	1 		 %read{5,5} %write{2147483647,-1}
+param	float	Detail	2 		 %read{3,3} %write{2147483647,-1}
+param	float	Offset	0 		 %read{132,306} %write{2147483647,-1}
+param	float	Gain	1 		 %read{133,219} %write{2147483647,-1}
+param	float	Scale	5 		 %read{11,11} %write{2147483647,-1}
+param	point	Vector	0 0 0 		 %read{8,8} %write{0,0}
+oparam	float	Fac	0 		 %read{313,313} %write{63,312}
+oparam	color	Color	0 0 0 		 %read{2147483647,-1} %write{313,313}
+global	point	P	 %read{0,0} %write{2147483647,-1}
+local	float	___337_f	 %read{19,305} %write{19,299}
+local	float	___346_rmd	 %read{95,109} %write{94,94}
+local	float	___346_value	 %read{71,112} %write{67,111}
+local	float	___346_pwr	 %read{71,110} %write{68,92}
+local	float	___346_pwHL	 %read{89,89} %write{70,70}
+local	int	___346_i	 %read{71,92} %write{71,92}
+local	float	___349_rmd	 %read{44,46} %write{43,43}
+local	float	___349_value	 %read{19,62} %write{15,61}
+local	float	___349_pwr	 %read{19,46} %write{16,41}
+local	float	___349_pwHL	 %read{38,38} %write{18,18}
+local	int	___349_i	 %read{19,41} %write{19,41}
+local	float	___352_value	 %read{266,311} %write{264,310}
+local	float	___352_increment	 %read{266,309} %write{266,308}
+local	float	___352_rmd	 %read{292,309} %write{291,291}
+local	float	___352_pwHL	 %read{251,286} %write{250,250}
+local	float	___352_pwr	 %read{266,307} %write{251,289}
+local	int	___352_i	 %read{266,289} %write{266,289}
+local	float	___356_result	 %read{133,189} %write{132,188}
+local	float	___356_signal	 %read{135,168} %write{135,168}
+local	float	___356_weight	 %read{135,168} %write{133,168}
+local	float	___356_rmd	 %read{171,187} %write{170,170}
+local	float	___356_pwHL	 %read{119,161} %write{118,118}
+local	float	___356_pwr	 %read{135,186} %write{119,168}
+local	int	___356_i	 %read{135,168} %write{135,168}
+local	float	___359_result	 %read{214,244} %write{212,243}
+local	float	___359_signal	 %read{211,243} %write{210,243}
+local	float	___359_weight	 %read{214,243} %write{213,243}
+local	float	___359_pwHL	 %read{196,241} %write{195,195}
+local	float	___359_pwr	 %read{214,243} %write{196,243}
+local	int	___359_i	 %read{214,243} %write{214,243}
+local	float	dimension	 %read{17,249} %write{1,1}
+local	float	octaves	 %read{21,291} %write{4,4}
+local	float	lacunarity	 %read{18,287} %write{5,5}
+local	string	Basis	 %read{2147483647,-1} %write{6,6}
+local	float	intensity	 %read{63,312} %write{7,7}
+local	point	p	 %read{10,299} %write{8,289}
+const	float	$const1	9.9999997e-006		 %read{1,5} %write{2147483647,-1}
+const	float	$const2	0		 %read{4,295} %write{2147483647,-1}
+const	float	$const3	16		 %read{3,3} %write{2147483647,-1}
+const	string	$const4	"clamp"		 %read{2,220} %write{2147483647,-1}
+temp	float	$tmp1	 %read{4,4} %write{3,3}
+const	string	$const5	"Perlin"		 %read{6,6} %write{2147483647,-1}
+const	float	$const6	1		 %read{7,221} %write{2147483647,-1}
+const	string	$const7	"Multifractal"		 %read{12,12} %write{2147483647,-1}
+temp	int	$tmp2	 %read{13,13} %write{12,12}
+temp	float	$tmp3	 %read{63,63} %write{62,62}
+const	string	$const8	"noise_musgrave_multi_fractal"		 %read{14,14} %write{2147483647,-1}
+temp	float	$tmp4	 %read{18,18} %write{17,17}
+const	int	$const9	0		 %read{20,301} %write{2147483647,-1}
+temp	int	$tmp5	 %read{22,22} %write{21,21}
+temp	int	$tmp6	 %read{19,41} %write{19,41}
+temp	float	$tmp7	 %read{35,35} %write{32,34}
+const	string	$const10	"safe_noise"		 %read{23,294} %write{2147483647,-1}
+temp	int	$tmp8	 %read{26,26} %write{25,25}
+const	string	$const11	"perlin"		 %read{27,298} %write{2147483647,-1}
+temp	int	$tmp9	 %read{30,30} %write{29,29}
+temp	int	$tmp10	 %read{31,31} %write{30,30}
+const	float	$const12	0.5		 %read{32,303} %write{2147483647,-1}
+temp	float	$tmp11	 %read{36,36} %write{35,35}
+temp	float	$tmp12	 %read{37,37} %write{36,36}
+const	int	$const13	1		 %read{41,289} %write{2147483647,-1}
+temp	int	$tmp13	 %read{2147483647,-1} %write{40,40}
+temp	float	$tmp14	 %read{43,43} %write{42,42}
+temp	int	$tmp15	 %read{45,45} %write{44,44}
+temp	float	$tmp16	 %read{59,59} %write{46,46}
+temp	float	$tmp17	 %read{59,59} %write{56,58}
+temp	int	$tmp18	 %read{50,50} %write{49,49}
+temp	int	$tmp19	 %read{54,54} %write{53,53}
+temp	int	$tmp20	 %read{55,55} %write{54,54}
+temp	float	$tmp21	 %read{60,60} %write{59,59}
+temp	float	$tmp22	 %read{61,61} %write{60,60}
+const	string	$const14	"fBM"		 %read{64,64} %write{2147483647,-1}
+temp	int	$tmp23	 %read{65,65} %write{64,64}
+temp	float	$tmp24	 %read{113,113} %write{112,112}
+const	string	$const15	"noise_musgrave_fBm"		 %read{66,66} %write{2147483647,-1}
+temp	float	$tmp25	 %read{70,70} %write{69,69}
+temp	int	$tmp26	 %read{74,74} %write{73,73}
+temp	int	$tmp27	 %read{71,92} %write{71,92}
+temp	float	$tmp28	 %read{87,87} %write{84,86}
+temp	int	$tmp29	 %read{78,78} %write{77,77}
+temp	int	$tmp30	 %read{82,82} %write{81,81}
+temp	int	$tmp31	 %read{83,83} %write{82,82}
+temp	float	$tmp32	 %read{88,88} %write{87,87}
+temp	int	$tmp33	 %read{2147483647,-1} %write{91,91}
+temp	float	$tmp34	 %read{94,94} %write{93,93}
+temp	int	$tmp35	 %read{96,96} %write{95,95}
+temp	float	$tmp36	 %read{109,109} %write{106,108}
+temp	int	$tmp37	 %read{100,100} %write{99,99}
+temp	int	$tmp38	 %read{104,104} %write{103,103}
+temp	int	$tmp39	 %read{105,105} %write{104,104}
+temp	float	$tmp40	 %read{110,110} %write{109,109}
+temp	float	$tmp41	 %read{111,111} %write{110,110}
+const	string	$const16	"Hybrid Multifractal"		 %read{114,114} %write{2147483647,-1}
+temp	int	$tmp42	 %read{115,115} %write{114,114}
+temp	float	$tmp43	 %read{190,190} %write{189,189}
+const	string	$const17	"noise_musgrave_hybrid_multi_fractal"		 %read{116,116} %write{2147483647,-1}
+temp	float	$tmp44	 %read{118,118} %write{117,117}
+temp	float	$tmp45	 %read{132,132} %write{129,131}
+temp	int	$tmp46	 %read{123,123} %write{122,122}
+temp	int	$tmp47	 %read{127,127} %write{126,126}
+temp	int	$tmp48	 %read{128,128} %write{127,127}
+const	float	$const18	0.001		 %read{137,137} %write{2147483647,-1}
+temp	int	$tmp49	 %read{138,138} %write{137,137}
+temp	int	$tmp50	 %read{135,168} %write{135,168}
+temp	int	$tmp51	 %read{141,141} %write{140,140}
+temp	int	$tmp52	 %read{142,142} %write{141,141}
+temp	int	$tmp53	 %read{143,143} %write{142,142}
+temp	int	$tmp54	 %read{145,145} %write{144,144}
+temp	float	$tmp55	 %read{159,159} %write{156,158}
+temp	int	$tmp56	 %read{150,150} %write{149,149}
+temp	int	$tmp57	 %read{154,154} %write{153,153}
+temp	int	$tmp58	 %read{155,155} %write{154,154}
+temp	float	$tmp59	 %read{160,160} %write{159,159}
+temp	float	$tmp60	 %read{163,163} %write{162,162}
+temp	float	$tmp61	 %read{165,165} %write{164,164}
+temp	int	$tmp62	 %read{2147483647,-1} %write{167,167}
+temp	float	$tmp63	 %read{170,170} %write{169,169}
+temp	int	$tmp64	 %read{172,172} %write{171,171}
+temp	float	$tmp65	 %read{185,185} %write{182,184}
+temp	int	$tmp66	 %read{176,176} %write{175,175}
+temp	int	$tmp67	 %read{180,180} %write{179,179}
+temp	int	$tmp68	 %read{181,181} %write{180,180}
+temp	float	$tmp69	 %read{186,186} %write{185,185}
+temp	float	$tmp70	 %read{187,187} %write{186,186}
+temp	float	$tmp71	 %read{188,188} %write{187,187}
+const	string	$const19	"Ridged Multifractal"		 %read{191,191} %write{2147483647,-1}
+temp	int	$tmp72	 %read{192,192} %write{191,191}
+temp	float	$tmp73	 %read{245,245} %write{244,244}
+const	string	$const20	"noise_musgrave_ridged_multi_fractal"		 %read{193,193} %write{2147483647,-1}
+temp	float	$tmp74	 %read{195,195} %write{194,194}
+temp	float	$tmp75	 %read{210,210} %write{209,209}
+temp	float	$tmp76	 %read{209,209} %write{206,208}
+temp	int	$tmp77	 %read{200,200} %write{199,199}
+temp	int	$tmp78	 %read{204,204} %write{203,203}
+temp	int	$tmp79	 %read{205,205} %write{204,204}
+temp	int	$tmp80	 %read{217,217} %write{216,216}
+temp	int	$tmp81	 %read{214,243} %write{214,243}
+temp	float	$tmp82	 %read{221,221} %write{219,219}
+temp	float	$tmp83	 %read{222,222} %write{221,221}
+temp	float	$tmp84	 %read{236,236} %write{235,235}
+temp	float	$tmp85	 %read{235,235} %write{232,234}
+temp	int	$tmp86	 %read{226,226} %write{225,225}
+temp	int	$tmp87	 %read{230,230} %write{229,229}
+temp	int	$tmp88	 %read{231,231} %write{230,230}
+temp	float	$tmp89	 %read{240,240} %write{239,239}
+temp	int	$tmp90	 %read{2147483647,-1} %write{242,242}
+const	string	$const21	"Hetero Terrain"		 %read{246,246} %write{2147483647,-1}
+temp	int	$tmp91	 %read{247,247} %write{246,246}
+temp	float	$tmp92	 %read{312,312} %write{311,311}
+const	string	$const22	"noise_musgrave_hetero_terrain"		 %read{248,248} %write{2147483647,-1}
+temp	float	$tmp93	 %read{250,250} %write{249,249}
+temp	float	$tmp94	 %read{264,264} %write{261,263}
+temp	int	$tmp95	 %read{255,255} %write{254,254}
+temp	int	$tmp96	 %read{259,259} %write{258,258}
+temp	int	$tmp97	 %read{260,260} %write{259,259}
+temp	int	$tmp98	 %read{269,269} %write{268,268}
+temp	int	$tmp99	 %read{266,289} %write{266,289}
+temp	float	$tmp100	 %read{282,282} %write{279,281}
+temp	int	$tmp101	 %read{273,273} %write{272,272}
+temp	int	$tmp102	 %read{277,277} %write{276,276}
+temp	int	$tmp103	 %read{278,278} %write{277,277}
+temp	float	$tmp104	 %read{283,283} %write{282,282}
+temp	float	$tmp105	 %read{284,284} %write{283,283}
+temp	int	$tmp106	 %read{2147483647,-1} %write{288,288}
+temp	float	$tmp107	 %read{291,291} %write{290,290}
+temp	int	$tmp108	 %read{293,293} %write{292,292}
+temp	float	$tmp109	 %read{306,306} %write{303,305}
+temp	int	$tmp110	 %read{297,297} %write{296,296}
+temp	int	$tmp111	 %read{301,301} %write{300,300}
+temp	int	$tmp112	 %read{302,302} %write{301,301}
+temp	float	$tmp113	 %read{307,307} %write{306,306}
+temp	float	$tmp114	 %read{308,308} %write{307,307}
+temp	float	$tmp115	 %read{310,310} %write{309,309}
+code Vector
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:198
+# 	output float Fac = 0.0,
+	assign		Vector P 	%filename{"C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl"} %line{198} %argrw{"wr"}
+code ___main___
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:202
+# 	float octaves = clamp(Detail, 0.0, 16.0);
+	max		dimension Dimension $const1 	%filename{"C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl"} %line{202} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:203
+# 	float lacunarity = max(Lacunarity, 1e-5);
+	functioncall	$const4 5 	%line{203} %argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:144
+# float  clamp (float x, float minval, float maxval) { return max(min(x,maxval),minval); }
+	min		$tmp1 Detail $const3 	%filename{"C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{144} %argrw{"wrr"}
+	max		octaves $tmp1 $const2 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:204
+# 	float value = 1.0;
+	max		lacunarity Lacunarity $const1 	%filename{"C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl"} %line{204} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:205
+# 	float pwr = 1.0;
+	assign		Basis $const5 	%line{205} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:206
+# 	float pwHL = pow(lacunarity, -H);
+	assign		intensity $const6 	%line{206} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:208
+# 
+	assign		p Vector 	%line{208} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:210
+# 		value *= (pwr * safe_noise(p, 0) + 1.0);
+	if		use_mapping 11 11 	%line{210} %argrw{"r"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:211
+# 		pwr *= pwHL;
+	transform	p mapping p 	%line{211} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:213
+# 	}
+	mul		p p Scale 	%line{213} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:215
+# 	rmd = octaves - floor(octaves);
+	eq		$tmp2 Type $const7 	%line{215} %argrw{"wrr"}
+	if		$tmp2 64 313 	%argrw{"r"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:216
+# 	if (rmd != 0.0)
+	functioncall	$const8 63 	%line{216} %argrw{"r"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:61
+# 	float pwr = 1.0;
+	assign		___349_value $const6 	%line{61} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:62
+# 	float pwHL = pow(lacunarity, -H);
+	assign		___349_pwr $const6 	%line{62} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:63
+# 	int i;
+	neg		$tmp4 dimension 	%line{63} %argrw{"wr"}
+	pow		___349_pwHL lacunarity $tmp4 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:66
+# 		value *= (pwr * safe_noise(p, 0) + 1.0);
+	for		$tmp6 21 23 40 42 	%line{66} %argrw{"r"}
+	assign		___349_i $const9 	%argrw{"wr"}
+	assign		$tmp5 octaves 	%argrw{"wr"}
+	lt		$tmp6 ___349_i $tmp5 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:67
+# 		pwr *= pwHL;
+	functioncall	$const10 35 	%line{67} %argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:158
+# 					da[2] = da[1];
+	assign		___337_f $const2 	%filename{"C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h"} %line{158} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:161
+# 					pa[3] = pa[2];
+	eq		$tmp8 $const9 $const9 	%line{161} %argrw{"wrr"}
+	if		$tmp8 28 29 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:162
+# 					pa[2] = pa[1];
+	noise		___337_f $const11 p 	%line{162} %argrw{"wrr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:166
+# 					da[3] = da[2];
+	noise		___337_f p 	%line{166} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:169
+# 					pa[3] = pa[2];
+	isfinite	$tmp9 ___337_f 	%line{169} %argrw{"wr"}
+	eq		$tmp10 $tmp9 $const9 	%argrw{"wrr"}
+	if		$tmp10 34 34 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:170
+# 					pa[2] = vp;
+	assign		$tmp7 $const12 	%line{170} %argrw{"wr"}
+	return
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:172
+# 				else if (d < da[3]) {
+	assign		$tmp7 ___337_f 	%line{172} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:67
+# 		pwr *= pwHL;
+	mul		$tmp11 ___349_pwr $tmp7 	%filename{"C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl"} %line{67} %argrw{"wrr"}
+	add		$tmp12 $tmp11 $const6 	%argrw{"wrr"}
+	mul		___349_value ___349_value $tmp12 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:68
+# 		p *= lacunarity;
+	mul		___349_pwr ___349_pwr ___349_pwHL 	%line{68} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:69
+# 	}
+	mul		p p lacunarity 	%line{69} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:66
+# 		value *= (pwr * safe_noise(p, 0) + 1.0);
+	assign		$tmp13 ___349_i 	%line{66} %argrw{"wr"}
+	add		___349_i ___349_i $const13 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:72
+# 	if (rmd != 0.0)
+	floor		$tmp14 octaves 	%line{72} %argrw{"wr"}
+	sub		___349_rmd octaves $tmp14 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:73
+# 		value *= (rmd * pwr * safe_noise(p, 0) + 1.0); /* correct? */
+	neq		$tmp15 ___349_rmd $const2 	%line{73} %argrw{"wrr"}
+	if		$tmp15 62 62 	%argrw{"r"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:74
+# 
+	mul		$tmp16 ___349_rmd ___349_pwr 	%line{74} %argrw{"wrr"}
+	functioncall	$const10 59 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:158
+# 					pa[3] = pa[2];
+	assign		___337_f $const2 	%filename{"C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h"} %line{158} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:161
+# 					pa[0] = vp;
+	eq		$tmp18 $const9 $const9 	%line{161} %argrw{"wrr"}
+	if		$tmp18 52 53 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:162
+# 				}
+	noise		___337_f $const11 p 	%line{162} %argrw{"wrr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:166
+# 					da[1] = d;
+	noise		___337_f p 	%line{166} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:169
+# 					pa[2] = pa[1];
+	isfinite	$tmp19 ___337_f 	%line{169} %argrw{"wr"}
+	eq		$tmp20 $tmp19 $const9 	%argrw{"wrr"}
+	if		$tmp20 58 58 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:170
+# 					pa[1] = vp;
+	assign		$tmp17 $const12 	%line{170} %argrw{"wr"}
+	return
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:172
+# 				else if (d < da[2]) {
+	assign		$tmp17 ___337_f 	%line{172} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:74
+# 
+	mul		$tmp21 $tmp16 $tmp17 	%filename{"C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl"} %line{74} %argrw{"wrr"}
+	add		$tmp22 $tmp21 $const6 	%argrw{"wrr"}
+	mul		___349_value ___349_value $tmp22 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:76
+# }
+	assign		$tmp3 ___349_value 	%line{76} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:216
+# 	else if (Type == "fBM")
+	mul		Fac intensity $tmp3 	%line{216} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:217
+# 		Fac = intensity * noise_musgrave_fBm(p, Basis, dimension, lacunarity, octaves);
+	eq		$tmp23 Type $const14 	%line{217} %argrw{"wrr"}
+	if		$tmp23 114 313 	%argrw{"r"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:218
+# 	else if (Type == "Hybrid Multifractal")
+	functioncall	$const15 113 	%line{218} %argrw{"r"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:33
+# 	float pwr = 1.0;
+	assign		___346_value $const2 	%line{33} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:34
+# 	float pwHL = pow(lacunarity, -H);
+	assign		___346_pwr $const6 	%line{34} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:35
+# 	int i;
+	neg		$tmp25 dimension 	%line{35} %argrw{"wr"}
+	pow		___346_pwHL lacunarity $tmp25 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:38
+# 		value += safe_noise(p, 0) * pwr;
+	for		$tmp27 73 75 91 93 	%line{38} %argrw{"r"}
+	assign		___346_i $const9 	%argrw{"wr"}
+	assign		$tmp26 octaves 	%argrw{"wr"}
+	lt		$tmp27 ___346_i $tmp26 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:39
+# 		pwr *= pwHL;
+	functioncall	$const10 87 	%line{39} %argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:158
+# 	voronoi(p, "Distance Squared", 0, da, pa);
+	assign		___337_f $const2 	%filename{"C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h"} %line{158} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:161
+# }
+	eq		$tmp29 $const9 $const9 	%line{161} %argrw{"wrr"}
+	if		$tmp29 80 81 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:162
+# 
+	noise		___337_f $const11 p 	%line{162} %argrw{"wrr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:166
+# 	point pa[4];
+	noise		___337_f p 	%line{166} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:169
+# 
+	isfinite	$tmp30 ___337_f 	%line{169} %argrw{"wr"}
+	eq		$tmp31 $tmp30 $const9 	%argrw{"wrr"}
+	if		$tmp31 86 86 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:170
+# 	return da[n2] - da[n1];
+	assign		$tmp28 $const12 	%line{170} %argrw{"wr"}
+	return
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:172
+# 
+	assign		$tmp28 ___337_f 	%line{172} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:39
+# 		pwr *= pwHL;
+	mul		$tmp32 $tmp28 ___346_pwr 	%filename{"C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl"} %line{39} %argrw{"wrr"}
+	add		___346_value ___346_value $tmp32 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:40
+# 		p *= lacunarity;
+	mul		___346_pwr ___346_pwr ___346_pwHL 	%line{40} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:41
+# 	}
+	mul		p p lacunarity 	%line{41} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:38
+# 		value += safe_noise(p, 0) * pwr;
+	assign		$tmp33 ___346_i 	%line{38} %argrw{"wr"}
+	add		___346_i ___346_i $const13 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:44
+# 	if (rmd != 0.0)
+	floor		$tmp34 octaves 	%line{44} %argrw{"wr"}
+	sub		___346_rmd octaves $tmp34 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:45
+# 		value += rmd * safe_noise(p, 0) * pwr;
+	neq		$tmp35 ___346_rmd $const2 	%line{45} %argrw{"wrr"}
+	if		$tmp35 112 112 	%argrw{"r"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:46
+# 
+	functioncall	$const10 109 	%line{46} %argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:158
+# }
+	assign		___337_f $const2 	%filename{"C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h"} %line{158} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:161
+# {
+	eq		$tmp37 $const9 $const9 	%line{161} %argrw{"wrr"}
+	if		$tmp37 102 103 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:162
+# 	float da[4];
+	noise		___337_f $const11 p 	%line{162} %argrw{"wrr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:166
+# 
+	noise		___337_f p 	%line{166} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:169
+# 
+	isfinite	$tmp38 ___337_f 	%line{169} %argrw{"wr"}
+	eq		$tmp39 $tmp38 $const9 	%argrw{"wrr"}
+	if		$tmp39 108 108 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:170
+# float voronoi_FnFn(point p, int n1, int n2)
+	assign		$tmp36 $const12 	%line{170} %argrw{"wr"}
+	return
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:172
+# 	float da[4];
+	assign		$tmp36 ___337_f 	%line{172} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:46
+# 
+	mul		$tmp40 ___346_rmd $tmp36 	%filename{"C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl"} %line{46} %argrw{"wrr"}
+	mul		$tmp41 $tmp40 ___346_pwr 	%argrw{"wrr"}
+	add		___346_value ___346_value $tmp41 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:48
+# }
+	assign		$tmp24 ___346_value 	%line{48} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:218
+# 	else if (Type == "Hybrid Multifractal")
+	mul		Fac intensity $tmp24 	%line{218} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:219
+# 		Fac = intensity * noise_musgrave_hybrid_multi_fractal(p, Basis, dimension, lacunarity, octaves, Offset, Gain);
+	eq		$tmp42 Type $const16 	%line{219} %argrw{"wrr"}
+	if		$tmp42 191 313 	%argrw{"r"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:220
+# 	else if (Type == "Ridged Multifractal")
+	functioncall	$const17 190 	%line{220} %argrw{"r"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:126
+# 	float pwr = pwHL;
+	neg		$tmp44 dimension 	%line{126} %argrw{"wr"}
+	pow		___356_pwHL lacunarity $tmp44 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:127
+# 	int i;
+	assign		___356_pwr ___356_pwHL 	%line{127} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:130
+# 	weight = gain * result;
+	functioncall	$const10 132 	%line{130} %argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:158
+# 	if (distance_metric == "Manhattan")
+	assign		___337_f $const2 	%filename{"C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h"} %line{158} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:161
+# 		return max(fabs(d[0]), max(fabs(d[1]), fabs(d[2])));
+	eq		$tmp46 $const9 $const9 	%line{161} %argrw{"wrr"}
+	if		$tmp46 125 126 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:162
+# 	if (distance_metric == "Minkovsky 1/2")
+	noise		___337_f $const11 p 	%line{162} %argrw{"wrr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:166
+# 	if (distance_metric == "Minkovsky")
+	noise		___337_f p 	%line{166} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:169
+# 	return 0.0;
+	isfinite	$tmp47 ___337_f 	%line{169} %argrw{"wr"}
+	eq		$tmp48 $tmp47 $const9 	%argrw{"wrr"}
+	if		$tmp48 131 131 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:170
+# #endif
+	assign		$tmp45 $const12 	%line{170} %argrw{"wr"}
+	return
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:172
+# 
+	assign		$tmp45 ___337_f 	%line{172} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:130
+# 	weight = gain * result;
+	add		___356_result $tmp45 Offset 	%filename{"C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl"} %line{130} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:131
+# 	p *= lacunarity;
+	mul		___356_weight Gain ___356_result 	%line{131} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:132
+# 
+	mul		p p lacunarity 	%line{132} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:134
+# 		if (weight > 1.0)
+	for		$tmp50 137 144 167 169 	%line{134} %argrw{"r"}
+	assign		___356_i $const13 	%argrw{"wr"}
+	gt		$tmp49 ___356_weight $const18 	%argrw{"wrr"}
+	neq		$tmp50 $tmp49 $const9 	%argrw{"wrr"}
+	if		$tmp50 144 144 	%argrw{"r"}
+	assign		$tmp51 octaves 	%argrw{"wr"}
+	lt		$tmp52 ___356_i $tmp51 	%argrw{"wrr"}
+	neq		$tmp53 $tmp52 $const9 	%argrw{"wrr"}
+	assign		$tmp50 $tmp53 	%argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:135
+# 			weight = 1.0;
+	gt		$tmp54 ___356_weight $const6 	%line{135} %argrw{"wrr"}
+	if		$tmp54 147 147 	%argrw{"r"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:136
+# 
+	assign		___356_weight $const6 	%line{136} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:138
+# 		pwr *= pwHL;
+	functioncall	$const10 159 	%line{138} %argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:158
+# {
+	assign		___337_f $const2 	%filename{"C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h"} %line{158} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:161
+# #endif
+	eq		$tmp56 $const9 $const9 	%line{161} %argrw{"wrr"}
+	if		$tmp56 152 153 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:162
+# 		return dot(d, d);
+	noise		___337_f $const11 p 	%line{162} %argrw{"wrr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:166
+# 	if (distance_metric == "Manhattan")
+	noise		___337_f p 	%line{166} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:169
+# 		return max(fabs(d[0]), max(fabs(d[1]), fabs(d[2])));
+	isfinite	$tmp57 ___337_f 	%line{169} %argrw{"wr"}
+	eq		$tmp58 $tmp57 $const9 	%argrw{"wrr"}
+	if		$tmp58 158 158 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:170
+# 	if (distance_metric == "Minkovsky 1/2")
+	assign		$tmp55 $const12 	%line{170} %argrw{"wr"}
+	return
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:172
+# 	if (distance_metric == "Minkovsky 4")
+	assign		$tmp55 ___337_f 	%line{172} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:138
+# 		pwr *= pwHL;
+	add		$tmp59 $tmp55 Offset 	%filename{"C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl"} %line{138} %argrw{"wrr"}
+	mul		___356_signal $tmp59 ___356_pwr 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:139
+# 		result += weight * signal;
+	mul		___356_pwr ___356_pwr ___356_pwHL 	%line{139} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:140
+# 		weight *= gain * signal;
+	mul		$tmp60 ___356_weight ___356_signal 	%line{140} %argrw{"wrr"}
+	add		___356_result ___356_result $tmp60 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:141
+# 		p *= lacunarity;
+	mul		$tmp61 Gain ___356_signal 	%line{141} %argrw{"wrr"}
+	mul		___356_weight ___356_weight $tmp61 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:142
+# 	}
+	mul		p p lacunarity 	%line{142} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:134
+# 		if (weight > 1.0)
+	assign		$tmp62 ___356_i 	%line{134} %argrw{"wr"}
+	add		___356_i ___356_i $const13 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:145
+# 	if (rmd != 0.0)
+	floor		$tmp63 octaves 	%line{145} %argrw{"wr"}
+	sub		___356_rmd octaves $tmp63 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:146
+# 		result += rmd * ((safe_noise(p, 0) + offset) * pwr);
+	neq		$tmp64 ___356_rmd $const2 	%line{146} %argrw{"wrr"}
+	if		$tmp64 189 189 	%argrw{"r"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:147
+# 
+	functioncall	$const10 185 	%line{147} %argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:158
+#  * distributed under the License is distributed on an "AS IS" BASIS,
+	assign		___337_f $const2 	%filename{"C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h"} %line{158} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:161
+#  * limitations under the License
+	eq		$tmp66 $const9 $const9 	%line{161} %argrw{"wrr"}
+	if		$tmp66 178 179 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:162
+#  */
+	noise		___337_f $const11 p 	%line{162} %argrw{"wrr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:166
+# float voronoi_distance(string distance_metric, vector d, float e)
+	noise		___337_f p 	%line{166} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:169
+# 	if (distance_metric == "Distance Squared")
+	isfinite	$tmp67 ___337_f 	%line{169} %argrw{"wr"}
+	eq		$tmp68 $tmp67 $const9 	%argrw{"wrr"}
+	if		$tmp68 184 184 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:170
+# #endif
+	assign		$tmp65 $const12 	%line{170} %argrw{"wr"}
+	return
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:172
+# #if 0
+	assign		$tmp65 ___337_f 	%line{172} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:147
+# 
+	add		$tmp69 $tmp65 Offset 	%filename{"C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl"} %line{147} %argrw{"wrr"}
+	mul		$tmp70 $tmp69 ___356_pwr 	%argrw{"wrr"}
+	mul		$tmp71 ___356_rmd $tmp70 	%argrw{"wrr"}
+	add		___356_result ___356_result $tmp71 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:149
+# }
+	assign		$tmp43 ___356_result 	%line{149} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:220
+# 	else if (Type == "Ridged Multifractal")
+	mul		Fac intensity $tmp43 	%line{220} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:221
+# 		Fac = intensity * noise_musgrave_ridged_multi_fractal(p, Basis, dimension, lacunarity, octaves, Offset, Gain);
+	eq		$tmp72 Type $const19 	%line{221} %argrw{"wrr"}
+	if		$tmp72 246 313 	%argrw{"r"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:222
+# 	else if (Type == "Hetero Terrain")
+	functioncall	$const20 245 	%line{222} %argrw{"r"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:164
+# 	float pwr = pwHL;
+	neg		$tmp74 dimension 	%line{164} %argrw{"wr"}
+	pow		___359_pwHL lacunarity $tmp74 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:165
+# 	int i;
+	assign		___359_pwr ___359_pwHL 	%line{165} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:168
+# 	signal *= signal;
+	functioncall	$const10 209 	%line{168} %argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:158
+# 	float f = 0.0;
+	assign		___337_f $const2 	%filename{"C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h"} %line{158} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:161
+# 	if (type == 0)
+	eq		$tmp77 $const9 $const9 	%line{161} %argrw{"wrr"}
+	if		$tmp77 202 203 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:162
+# 		f = noise("perlin", p);
+	noise		___337_f $const11 p 	%line{162} %argrw{"wrr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:166
+# 		f = noise(p);
+	noise		___337_f p 	%line{166} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:169
+# 	if (!isfinite(f))
+	isfinite	$tmp78 ___337_f 	%line{169} %argrw{"wr"}
+	eq		$tmp79 $tmp78 $const9 	%argrw{"wrr"}
+	if		$tmp79 208 208 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:170
+# 		return 0.5;
+	assign		$tmp76 $const12 	%line{170} %argrw{"wr"}
+	return
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:172
+# 	return f;
+	assign		$tmp76 ___337_f 	%line{172} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:168
+# 	signal *= signal;
+	fabs		$tmp75 $tmp76 	%filename{"C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl"} %line{168} %argrw{"wr"}
+	sub		___359_signal Offset $tmp75 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:169
+# 	result = signal;
+	mul		___359_signal ___359_signal ___359_signal 	%line{169} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:170
+# 	weight = 1.0;
+	assign		___359_result ___359_signal 	%line{170} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:171
+# 
+	assign		___359_weight $const6 	%line{171} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:173
+# 		p *= lacunarity;
+	for		$tmp81 216 218 242 244 	%line{173} %argrw{"r"}
+	assign		___359_i $const13 	%argrw{"wr"}
+	assign		$tmp80 octaves 	%argrw{"wr"}
+	lt		$tmp81 ___359_i $tmp80 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:174
+# 		weight = clamp(signal * gain, 0.0, 1.0);
+	mul		p p lacunarity 	%line{174} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:175
+# 		signal = offset - fabs(safe_noise(p, 0));
+	mul		$tmp82 ___359_signal Gain 	%line{175} %argrw{"wrr"}
+	functioncall	$const4 223 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h:144
+# float  clamp (float x, float minval, float maxval) { return max(min(x,maxval),minval); }
+	min		$tmp83 $tmp82 $const6 	%filename{"C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\stdosl.h"} %line{144} %argrw{"wrr"}
+	max		___359_weight $tmp83 $const2 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:176
+# 	float value = 0.0;
+	functioncall	$const10 235 	%filename{"C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl"} %line{176} %argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:158
+# 	float f = 0.0;
+	assign		___337_f $const2 	%filename{"C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h"} %line{158} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:161
+# 	if (type == 0)
+	eq		$tmp86 $const9 $const9 	%line{161} %argrw{"wrr"}
+	if		$tmp86 228 229 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:162
+# 		f = noise("perlin", p);
+	noise		___337_f $const11 p 	%line{162} %argrw{"wrr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:166
+# 		f = noise(p);
+	noise		___337_f p 	%line{166} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:169
+# 	if (!isfinite(f))
+	isfinite	$tmp87 ___337_f 	%line{169} %argrw{"wr"}
+	eq		$tmp88 $tmp87 $const9 	%argrw{"wrr"}
+	if		$tmp88 234 234 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:170
+# 		return 0.5;
+	assign		$tmp85 $const12 	%line{170} %argrw{"wr"}
+	return
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:172
+# 	return f;
+	assign		$tmp85 ___337_f 	%line{172} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:176
+#  * Licensed under the Apache License, Version 2.0 (the "License");
+	fabs		$tmp84 $tmp85 	%filename{"C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl"} %line{176} %argrw{"wr"}
+	sub		___359_signal Offset $tmp84 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:177
+#  * you may not use this file except in compliance with the License.
+	mul		___359_signal ___359_signal ___359_signal 	%line{177} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:178
+#  * You may obtain a copy of the License at
+	mul		___359_signal ___359_signal ___359_weight 	%line{178} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:179
+#  *
+	mul		$tmp89 ___359_signal ___359_pwr 	%line{179} %argrw{"wrr"}
+	add		___359_result ___359_result $tmp89 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:180
+#  * http://www.apache.org/licenses/LICENSE-2.0
+	mul		___359_pwr ___359_pwr ___359_pwHL 	%line{180} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:173
+# 		p *= lacunarity;
+	assign		$tmp90 ___359_i 	%line{173} %argrw{"wr"}
+	add		___359_i ___359_i $const13 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:183
+# }
+	assign		$tmp73 ___359_result 	%line{183} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:222
+# 	else if (Type == "Hetero Terrain")
+	mul		Fac intensity $tmp73 	%line{222} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:223
+# 		Fac = intensity * noise_musgrave_hetero_terrain(p, Basis, dimension, lacunarity, octaves, Offset);
+	eq		$tmp91 Type $const21 	%line{223} %argrw{"wrr"}
+	if		$tmp91 313 313 	%argrw{"r"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:224
+# 	
+	functioncall	$const22 312 	%line{224} %argrw{"r"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:90
+# 	float pwr = pwHL;
+	neg		$tmp93 dimension 	%line{90} %argrw{"wr"}
+	pow		___352_pwHL lacunarity $tmp93 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:91
+# 	int i;
+	assign		___352_pwr ___352_pwHL 	%line{91} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:95
+# 	p *= lacunarity;
+	functioncall	$const10 264 	%line{95} %argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:158
+# 	da[0] = 1e10;
+	assign		___337_f $const2 	%filename{"C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h"} %line{158} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:161
+# 	da[3] = 1e10;
+	eq		$tmp95 $const9 $const9 	%line{161} %argrw{"wrr"}
+	if		$tmp95 257 258 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:162
+# 
+	noise		___337_f $const11 p 	%line{162} %argrw{"wrr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:166
+# 				point ip = point(xx, yy, zz);
+	noise		___337_f p 	%line{166} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:169
+# 				float d = voronoi_distance(distance_metric, pd, e);
+	isfinite	$tmp96 ___337_f 	%line{169} %argrw{"wr"}
+	eq		$tmp97 $tmp96 $const9 	%argrw{"wrr"}
+	if		$tmp97 263 263 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:170
+# 
+	assign		$tmp94 $const12 	%line{170} %argrw{"wr"}
+	return
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:172
+# 
+	assign		$tmp94 ___337_f 	%line{172} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:95
+# 	p *= lacunarity;
+	add		___352_value Offset $tmp94 	%filename{"C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl"} %line{95} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:96
+# 
+	mul		p p lacunarity 	%line{96} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:98
+# 		increment = (safe_noise(p, 0) + offset) * pwr * value;
+	for		$tmp99 268 270 288 290 	%line{98} %argrw{"r"}
+	assign		___352_i $const13 	%argrw{"wr"}
+	assign		$tmp98 octaves 	%argrw{"wr"}
+	lt		$tmp99 ___352_i $tmp98 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:99
+# 		value += increment;
+	functioncall	$const10 282 	%line{99} %argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:158
+# 	xi = (int)floor(p[0]);
+	assign		___337_f $const2 	%filename{"C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h"} %line{158} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:161
+# 
+	eq		$tmp101 $const9 $const9 	%line{161} %argrw{"wrr"}
+	if		$tmp101 275 276 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:162
+# 	da[0] = 1e10;
+	noise		___337_f $const11 p 	%line{162} %argrw{"wrr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:166
+# 
+	noise		___337_f p 	%line{166} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:169
+# 			for (zz = zi - 1; zz <= zi + 1; zz++) {
+	isfinite	$tmp102 ___337_f 	%line{169} %argrw{"wr"}
+	eq		$tmp103 $tmp102 $const9 	%argrw{"wrr"}
+	if		$tmp103 281 281 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:170
+# 				point ip = point(xx, yy, zz);
+	assign		$tmp100 $const12 	%line{170} %argrw{"wr"}
+	return
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:172
+# 				point pd = p - (vp + ip);
+	assign		$tmp100 ___337_f 	%line{172} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:99
+# 		value += increment;
+	add		$tmp104 $tmp100 Offset 	%filename{"C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl"} %line{99} %argrw{"wrr"}
+	mul		$tmp105 $tmp104 ___352_pwr 	%argrw{"wrr"}
+	mul		___352_increment $tmp105 ___352_value 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:100
+# 		pwr *= pwHL;
+	add		___352_value ___352_value ___352_increment 	%line{100} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:101
+# 		p *= lacunarity;
+	mul		___352_pwr ___352_pwr ___352_pwHL 	%line{101} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:102
+# 	}
+	mul		p p lacunarity 	%line{102} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:98
+# 		increment = (safe_noise(p, 0) + offset) * pwr * value;
+	assign		$tmp106 ___352_i 	%line{98} %argrw{"wr"}
+	add		___352_i ___352_i $const13 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:105
+# 	if (rmd != 0.0) {
+	floor		$tmp107 octaves 	%line{105} %argrw{"wr"}
+	sub		___352_rmd octaves $tmp107 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:106
+# 		increment = (safe_noise(p, 0) + offset) * pwr * value;
+	neq		$tmp108 ___352_rmd $const2 	%line{106} %argrw{"wrr"}
+	if		$tmp108 311 311 	%argrw{"r"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:107
+# 		value += rmd * increment;
+	functioncall	$const10 306 	%line{107} %argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:158
+# 	return color(r, g, b);
+	assign		___337_f $const2 	%filename{"C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h"} %line{158} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:161
+# void voronoi(point p, string distance_metric, float e, float da[4], point pa[4])
+	eq		$tmp110 $const9 $const9 	%line{161} %argrw{"wrr"}
+	if		$tmp110 299 300 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:162
+# {
+	noise		___337_f $const11 p 	%line{162} %argrw{"wrr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:166
+# 	xi = (int)floor(p[0]);
+	noise		___337_f p 	%line{166} %argrw{"wr"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:169
+# 
+	isfinite	$tmp111 ___337_f 	%line{169} %argrw{"wr"}
+	eq		$tmp112 $tmp111 $const9 	%argrw{"wrr"}
+	if		$tmp112 305 305 	%argrw{"r"}
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:170
+# 	da[0] = 1e10;
+	assign		$tmp109 $const12 	%line{170} %argrw{"wr"}
+	return
+# C:/Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_texture.h:172
+# 	da[2] = 1e10;
+	assign		$tmp109 ___337_f 	%line{172} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:107
+# 		value += rmd * increment;
+	add		$tmp113 $tmp109 Offset 	%filename{"C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl"} %line{107} %argrw{"wrr"}
+	mul		$tmp114 $tmp113 ___352_pwr 	%argrw{"wrr"}
+	mul		___352_increment $tmp114 ___352_value 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:108
+# 	}
+	mul		$tmp115 ___352_rmd ___352_increment 	%line{108} %argrw{"wrr"}
+	add		___352_value ___352_value $tmp115 	%argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:111
+# }
+	assign		$tmp92 ___352_value 	%line{111} %argrw{"wr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:224
+# 	
+	mul		Fac intensity $tmp92 	%line{224} %argrw{"wrr"}
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_musgrave_texture.osl:226
+# }
+	color		Color Fac Fac Fac 	%line{226} %argrw{"wrrr"}
+	end

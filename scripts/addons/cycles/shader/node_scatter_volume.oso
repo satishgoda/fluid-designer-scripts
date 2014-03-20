@@ -1,0 +1,17 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.4.0
+shader node_scatter_volume
+param	color	Color	0.80000001 0.80000001 0.80000001 		 %read{1,1} %write{2147483647,-1}
+param	float	Density	1 		 %read{1,1} %write{2147483647,-1}
+param	float	Anisotropy	0 		 %read{0,0} %write{2147483647,-1}
+oparam	closure color	Volume			 %read{2147483647,-1} %write{2,2}
+temp	closure color	$tmp1	 %read{2,2} %write{0,0}
+const	string	$const1	"henyey_greenstein"		 %read{0,0} %write{2147483647,-1}
+temp	color	$tmp2	 %read{2,2} %write{1,1}
+code ___main___
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_scatter_volume.osl:26
+# }
+	closure		$tmp1 $const1 Anisotropy 	%filename{"C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_scatter_volume.osl"} %line{26} %argrw{"wrr"}
+	mul		$tmp2 Color Density 	%argrw{"wrr"}
+	mul		Volume $tmp1 $tmp2 	%argrw{"wrr"}
+	end

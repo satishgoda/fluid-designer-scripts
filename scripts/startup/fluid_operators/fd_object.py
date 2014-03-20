@@ -85,9 +85,6 @@ class OPS_create_floor_plane(Operator):
         return True
 
     def execute(self, context):
-        #TODO: Fix this operator. Figure out how to work with the obj.matrix_world
-        #      This operator should calculate the bounds of the room and create a 
-        #      rectangle that fits the entire room. 
         largest_x = 0
         largest_y = 0
         smallest_x = 0
@@ -97,19 +94,17 @@ class OPS_create_floor_plane(Operator):
             if group.mv.type == 'WALL':
                 obj_bp = group.mv.get_bp()
                 obj_x = group.mv.get_x()
-                end_x = obj_bp.location.x + math.cos(obj_bp.rotation_euler.z) * obj_x.location.x
-                end_y = obj_bp.location.y + math.sin(obj_bp.rotation_euler.z) * obj_x.location.x
-                start_point = obj_bp.location
-                end_point = (end_x,end_y,0.0)
-                
-                if start_point.x > largest_x:
-                    largest_x = start_point.x
-                if start_point.y > largest_y:
-                    largest_y = start_point.y
-                if start_point.x < smallest_x:
-                    smallest_x = start_point.x
-                if start_point.y < smallest_y:
-                    smallest_y = start_point.y
+                start_point = (obj_bp.matrix_world[0][3],obj_bp.matrix_world[1][3],0)
+                end_point = (obj_x.matrix_world[0][3],obj_x.matrix_world[1][3],0)
+
+                if start_point[0] > largest_x:
+                    largest_x = start_point[0]
+                if start_point[1] > largest_y:
+                    largest_y = start_point[1]
+                if start_point[0] < smallest_x:
+                    smallest_x = start_point[0]
+                if start_point[1] < smallest_y:
+                    smallest_y = start_point[1]
                 if end_point[0] > largest_x:
                     largest_x = end_point[0]
                 if end_point[1] > largest_y:
@@ -826,27 +821,25 @@ class OPS_add_countertop_to_product(Operator):
 
     def execute(self, context):
         dm = context.scene.mv.dm
-        SelectedObjects = bpy.context.selected_objects
         COUNTER_TOP_CLEARANCE = 0.1
         
         bpy.ops.object.select_all(action='DESELECT')
+
+        list_products = fd_utils.get_product_list_from_selected(bpy.context.selected_objects)
         
-        for obj in SelectedObjects:
+        for product in list_products:
             verts = [0.0,0.0,0.0,0.0]
-            grp_product = dm.get_product_group(obj)
-            #could use GetBounds()
-            obj_BP = grp_product.mv.get_bp()
-            obj_XDim = grp_product.mv.get_x()
-            obj_YDim = grp_product.mv.get_y()
-            obj_ZDim = grp_product.mv.get_z()
-            
-            verts[0] = obj_XDim.location.x
-            verts[1] = obj_YDim.location.y            
+            obj_bp = product.mv.get_bp()
+            obj_x = product.mv.get_x()
+            obj_y = product.mv.get_y()
+            obj_z = product.mv.get_z()
+            verts[0] = obj_x.matrix_world[0][3]
+            verts[1] = obj_y.obj_bp.matrix_world[1][3]
             
             #Create countertop meshes
-            if grp_product.mv.category_type == 'CORNER':
-                float_LeftSideDepth = obj_BP.mv.PromptPage.COL_Prompt["Left Side Width"].NumberValue
-                float_RightSideDepth = obj_BP.mv.PromptPage.COL_Prompt["Right Side Width"].NumberValue
+            if product.mv.category_type == 'CORNER':
+                float_LeftSideDepth = obj_bp.mv.PromptPage.COL_Prompt["Left Side Width"].NumberValue
+                float_RightSideDepth = obj_bp.mv.PromptPage.COL_Prompt["Right Side Width"].NumberValue
                 verts[2] = float_LeftSideDepth
                 verts[3] = float_RightSideDepth
                 
@@ -854,13 +847,7 @@ class OPS_add_countertop_to_product(Operator):
             
             else:              
                 obj_CounterTop = fd_utils.create_countertop_mesh("countertop", verts)
-            
-            #set mesh loc on top of product    
-            obj_CounterTop.location.x = obj_BP.location.x
-            obj_CounterTop.location.y = obj_BP.location.y
-            obj_CounterTop.location.z = obj_ZDim.location.z + COUNTER_TOP_CLEARANCE
-            obj_CounterTop.rotation_euler.z = obj_BP.rotation_euler.z
-            
+                
             bpy.context.scene.objects.active = obj_CounterTop
             obj_CounterTop.select = True
         

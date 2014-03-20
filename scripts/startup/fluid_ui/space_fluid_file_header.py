@@ -49,13 +49,21 @@ class FILEBROWSER_MT_fd_view(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("file.previous", text="Back to Previous", icon='BACK')
+        layout.operator("fd_library.open_active_library_path", text="Open in Windows Explorer", icon='FILE_FOLDER')
+        layout.operator("fd_library.refresh_library", text="Refresh Library", icon='FILE_REFRESH')
         layout.separator()
+        layout.operator("file.previous", text="Back to Previous", icon='BACK')
         layout.operator("file.parent", text="Go to Parent", icon='FILE_PARENT')
-        layout.operator("file.refresh", text="Refresh", icon='FILE_REFRESH')
         layout.separator()
         layout.operator_context = "EXEC_DEFAULT"
         layout.operator("file.directory_new", icon='NEWFOLDER')
+
+class FILEBROWSER_MT_fd_save(Menu):
+    bl_label = "Save"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("fd_scene.save_file_to_active_category", text="Save To Category", icon='SAVE_COPY')
 
 class FILEBROWSER_MT_fd_navigation(Menu):
     bl_label = "Navigation"
@@ -75,60 +83,6 @@ class FILEBROWSER_MT_fd_navigation(Menu):
             layout.prop(params, "use_filter_font", text="Show Font Files")
             layout.prop(params, "use_filter_text", text="Show Text Files")
 
-
-#     def draw(self, context):
-#         layout = self.layout
-# 
-#         st = context.space_data
-#         if context.scene.mv.ui.use_default_blender_interface:
-#             layout.template_header()
-#     
-#             row = layout.row()
-#             row.separator()
-#     
-#             row = layout.row(align=True)
-#             row.operator("file.previous", text="", icon='BACK')
-#             row.operator("file.next", text="", icon='FORWARD')
-#             row.operator("file.parent", text="", icon='FILE_PARENT')
-#             row.operator("file.refresh", text="", icon='FILE_REFRESH')
-#     
-#             row = layout.row()
-#             row.separator()
-#     
-#             row = layout.row(align=True)
-#             layout.operator_context = "EXEC_DEFAULT"
-#             row.operator("file.directory_new", icon='NEWFOLDER')
-#     
-#             layout.operator_context = "INVOKE_DEFAULT"
-#             params = st.params
-#     
-#             # can be None when save/reload with a file selector open
-#             if params:
-#                 layout.prop(params, "display_type", expand=True, text="")
-#                 layout.prop(params, "sort_method", expand=True, text="")
-#     
-#                 layout.prop(params, "show_hidden")
-#                 layout.prop(params, "use_filter", text="", icon='FILTER')
-#     
-#                 row = layout.row(align=True)
-#                 row.active = params.use_filter
-#     
-#                 row.prop(params, "use_filter_folder", text="")
-#     
-#                 if params.filter_glob:
-#                     #if st.active_operator and hasattr(st.active_operator, "filter_glob"):
-#                     #    row.prop(params, "filter_glob", text="")
-#                     row.label(params.filter_glob)
-#                 else:
-#                     row.prop(params, "use_filter_blender", text="")
-#                     row.prop(params, "use_filter_backup", text="")
-#                     row.prop(params, "use_filter_image", text="")
-#                     row.prop(params, "use_filter_movie", text="")
-#                     row.prop(params, "use_filter_script", text="")
-#                     row.prop(params, "use_filter_font", text="")
-#                     row.prop(params, "use_filter_sound", text="")
-#                     row.prop(params, "use_filter_text", text="")
-                    
 class FILE_MT_fd_menus(Menu):
     bl_space_type = 'VIEW3D_MT_editor_menus'
     bl_label = ""
@@ -140,6 +94,7 @@ class FILE_MT_fd_menus(Menu):
     def draw_menus(layout, context):
         layout.menu("FILEBROWSER_MT_fd_view",icon='VIEWZOOM',text="     View     ")
         layout.menu("FILEBROWSER_MT_fd_filters",icon='FILTER',text="     Filters     ")
+        layout.menu("FILEBROWSER_MT_fd_save",icon='FILE_TICK',text="     Save     ")
 
 class PANEL_fluid_libraries(Panel):
     bl_space_type = "FILE_BROWSER"
@@ -169,6 +124,7 @@ classes = [
            FILEBROWSER_MT_fd_filters,
            FILEBROWSER_MT_fd_view,
            FILEBROWSER_MT_fd_navigation,
+           FILEBROWSER_MT_fd_save,
            PANEL_fluid_libraries
            ]
 

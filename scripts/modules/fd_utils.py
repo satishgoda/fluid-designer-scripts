@@ -22,7 +22,9 @@ from bpy_extras import view3d_utils, object_utils
 reg_key = r"Software\Microvellum\Fluid Designer\R2.7\Fluid Designer"
 
 def select_cursor_object(context, event, ray_max=10000.0):
-    """Run this function on left mouse, execute the ray cast"""
+    """ This is a function that can be run from a modal operator
+        to select the 3D object the mouse is hovered over.
+    """
     # get the context arguments
     scene = context.scene
     region = context.region
@@ -96,6 +98,9 @@ def select_cursor_object(context, event, ray_max=10000.0):
         context.scene.objects.active = None
 
 def get_library_data_path():
+    """ This will return the path to the data
+        that is stored in the registry
+    """
     import winreg
     hkey_user = winreg.ConnectRegistry(None,winreg.HKEY_CURRENT_USER)
     app_settings = winreg.OpenKey(hkey_user, reg_key + "\ApplicationSettings")
@@ -105,7 +110,12 @@ def get_library_data_path():
     data_path = winreg.QueryValueEx(main_key, "PathToMicrovellumData")
     return data_path[0]
 
-def create_bp_mesh(type):
+def create_bp_mesh(obj_type):
+    """ This function creates and returns 
+        a mesh object that has one vertex.
+        These are used for the Base Point of groups.
+        arg1: Type of base point to create
+    """
     verts = [(0, 0, 0)]
     mesh = bpy.data.meshes.new("Base Point")
     bm = bmesh.new()
@@ -115,12 +125,17 @@ def create_bp_mesh(type):
     mesh.update()
     obj_base = object_utils.object_data_add(bpy.context,mesh)
     obj = obj_base.object
-    obj.mv.type = type
+    obj.mv.type = obj_type
     obj.mv.name_object = 'Base Point'
     return obj
 
 def create_vp_empty(grp_type,obj_type):
-    
+    """ This function creates and returns 
+        an object to be used as a visible prompt.
+        These are used for the Base Point of groups.
+        arg1: Type of group it is assigned to {'PRODUCT','INSERT','PART','WALL'}
+        arg2: Type VP to create: {'VPDIMX','VPDIMY','VPDIMZ'}
+    """
     bpy.ops.object.empty_add()
     bpy.context.active_object.location = (0,0,0)
     
@@ -161,15 +176,14 @@ def create_vp_empty(grp_type,obj_type):
         obj.empty_draw_type = 'CUBE'
         obj.empty_draw_size = 6.0
         obj.mv.name_object = "Wall " + obj_name
-        
-    if grp_type == 'PLANE':
-        obj.empty_draw_type = 'CUBE'
-        obj.empty_draw_size = 6.0
-        obj.mv.name_object = "Plane " + obj_name
-        
+
     return obj
 
 def create_object_from_verts_and_faces(verts,faces,name):
+    """ Creates an object from Verties and Faces
+        arg1: Verts List of tuples [(float,float,float)]
+        arg2: Faces List of ints
+    """
     mesh = bpy.data.meshes.new(name)
     
     bm = bmesh.new()
@@ -479,35 +493,29 @@ def draw_driver_variables(layout,driver,object_name):
             row.label("     ")
             row.label("Value: " + str(value))
             row.label("     ")
-                
-def check_for_group_collision(grp1,grp2):
-    found_z_collision = False
-    found_y_collision = False
-    #TODO: REVIEW THIS AND IMPLEMENT Y DIM CHECKS
+
+def check_for_group_height_collision(grp1,grp2):
     if grp1 and grp2:
 
         if grp1.mv.get_z().location.z < 0:
             grp1_z_1 = grp1.mv.get_z().matrix_world[2][3]
-            grp1_z_2 = grp2.mv.get_bp().matrix_world[2][3]
+            grp1_z_2 = grp1.mv.get_bp().matrix_world[2][3]
         else:
             grp1_z_1 = grp1.mv.get_bp().matrix_world[2][3]
-            grp1_z_2 = grp2.mv.get_z().matrix_world[2][3]
+            grp1_z_2 = grp1.mv.get_z().matrix_world[2][3]
         
         if grp2.mv.get_z().location.z < 0:
-            grp2_z_1 = grp1.mv.get_z().matrix_world[2][3]
+            grp2_z_1 = grp2.mv.get_z().matrix_world[2][3]
             grp2_z_2 = grp2.mv.get_bp().matrix_world[2][3]
         else:
-            grp2_z_1 = grp1.mv.get_bp().matrix_world[2][3]
+            grp2_z_1 = grp2.mv.get_bp().matrix_world[2][3]
             grp2_z_2 = grp2.mv.get_z().matrix_world[2][3]
     
         if grp1_z_1 >= grp2_z_1 and grp1_z_1 <= grp2_z_2:
             return True
             
-        if grp1_z_2 >= grp2_z_1 and grp1_z_2 >= grp2_z_2:
+        if grp1_z_2 >= grp2_z_1 and grp1_z_2 <= grp2_z_2:
             return True
-            
-    if found_z_collision and found_y_collision:
-        return True
 
 def make_group_from_base_point(obj,self):
     bpy.ops.object.select_all(action='DESELECT')
@@ -544,7 +552,20 @@ def assign_child_objects_to_groups(obj,group_name):
         if child.mv.type == 'BPPART':
             assign_child_objects_to_groups(child,group_name)
 
-
+def get_product_list_from_selected(list_obj):
+    """ Returns a list of products based on the selected
+        objects. This will not return duplicate products.
+    """
+    dm = bpy.context.scene.mv.dm
+    product_list = []
+    for obj in list_obj:
+        product = dm.get_product_group(obj)
+        if product:
+            if product not in product_list:
+                product_list.append(product)
+    return product_list
+        
+        
 
 
 

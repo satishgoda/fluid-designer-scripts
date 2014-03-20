@@ -269,7 +269,7 @@ class INFO_MT_create_rendering(Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator("fd_scene.render_scene",text="Render Scene",icon='RENDER_STILL')
-        layout.operator("fd_scene.create_thumbnail",text="Render Product Thumbnail",icon='RENDER_RESULT')
+        layout.operator("fd_general.render_thumbnail",text="Render Product Thumbnail",icon='RENDER_RESULT')
         layout.separator()
         layout.operator("fd_scene.render_settings",text="Render Settings",icon='INFO')
 

@@ -29,6 +29,8 @@ from bpy.props import (StringProperty,
 
 from fd_datablocks import enums
 
+import os
+
 class OPS_change_library(Operator):
     bl_idname = "fd_library.change_library"
     bl_label = "Change Library"
@@ -172,33 +174,69 @@ class OPS_add_library(Operator):
 class OPS_add_category(Operator):
     bl_idname = "fd_library.add_category"
     bl_label = "Add Category"
-    
-    LibraryType = EnumProperty(name="LibraryType",items=enums.enum_library_types)
-    LibraryName = StringProperty(name="Library Name")
+
+    category_name = StringProperty(name="Category Name")
     
     @classmethod
     def poll(cls, context):
         return True
 
     def execute(self, context):
-        #TODO: Implement Add Category
+        dm = context.scene.mv.dm
+        library = dm.Libraries.get_active_pointer_library()
+        if not os.path.exists(os.path.join(library.path,self.category_name)):
+            os.makedirs(os.path.join(library.path,self.category_name))
+        dm.Libraries.path = dm.Libraries.path
         return {'FINISHED'}
 
     def invoke(self,context,event):
         wm = context.window_manager
-        return wm.invoke_props_dialog(self, width=500)
+        return wm.invoke_props_dialog(self, width=400)
 
     def draw(self, context):
-        pass
+        layout = self.layout
+        layout.prop(self,'category_name')
+    
+class OPS_open_active_library_path(Operator):
+    bl_idname = "fd_library.open_active_library_path"
+    bl_label = "Open Active Library Path"
+    
+    category_name = StringProperty(name="Category Name")
+    
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def execute(self, context):
+        dm = context.scene.mv.dm
+        library = dm.Libraries.get_active_pointer_library()
+        category = library.Categories.get_active_category()
+        import subprocess
+        subprocess.Popen(r'explorer /select,' + category.path)
+        return {'FINISHED'}
+
+class OPS_refresh_library(Operator):
+    bl_idname = "fd_library.refresh_library"
+    bl_label = "Refresh_library"
+    
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def execute(self, context):
+        dm = context.scene.mv.dm
+        dm.Libraries.path = dm.Libraries.path
+        return {'FINISHED'}
     
 #------REGISTER
 classes = [
            OPS_change_library,
            OPS_change_library_category,
            OPS_change_library_group,
-#            OPS_add_pointer,
-#            OPS_delete_pointer,
-           OPS_change_specgroup_tab
+           OPS_change_specgroup_tab,
+           OPS_add_category,
+           OPS_open_active_library_path,
+           OPS_refresh_library
            ]
 
 def register():

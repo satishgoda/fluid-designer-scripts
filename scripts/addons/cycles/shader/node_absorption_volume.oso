@@ -1,0 +1,19 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.4.0
+shader node_absorption_volume
+param	color	Color	0.80000001 0.80000001 0.80000001 		 %read{1,1} %write{2147483647,-1}
+param	float	Density	1 		 %read{2,2} %write{2147483647,-1}
+oparam	closure color	Volume			 %read{2147483647,-1} %write{3,3}
+temp	closure color	$tmp1	 %read{3,3} %write{0,0}
+const	string	$const1	"absorption"		 %read{0,0} %write{2147483647,-1}
+const	color	$const2	1 1 1		 %read{1,1} %write{2147483647,-1}
+temp	color	$tmp3	 %read{2,2} %write{1,1}
+temp	color	$tmp4	 %read{3,3} %write{2,2}
+code ___main___
+# C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_absorption_volume.osl:25
+# }
+	closure		$tmp1 $const1 	%filename{"C:\\Development\\BlenderSource\\blender\\intern\\cycles\\kernel\\shaders\\node_absorption_volume.osl"} %line{25} %argrw{"wr"}
+	sub		$tmp3 $const2 Color 	%argrw{"wrr"}
+	mul		$tmp4 $tmp3 Density 	%argrw{"wrr"}
+	mul		Volume $tmp1 $tmp4 	%argrw{"wrr"}
+	end
